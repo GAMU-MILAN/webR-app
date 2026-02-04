@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MILAN</title>
+    <style>
+    /* Background and fonts */
+    body {
+      font-family: "Georgia", serif;
+      background-color: #f5fbff; /* light blue */
+      color: #010408;            /* dark blue text */
+      margin: 0;
+      padding: 5px 20px 20px 250px; /* add left padding for sticky ToC */
+    }
+
+    /* Header styles */
+    h1 {
+      color: #0c3574;            /* dark blue */
+      background-color: #bbdefb; /* medium blue */
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #0c3574; /* another shade of blue */
+      text-align: left;
+    }
+
+    p {
+      font-size: 16px;
+      font-family: "Georgia", serif;
+      color: #040e1e;
+    }
+
+    /* Styling the webR state box */
+    #webR-state {
+      color: red;                /* make text red */
+      font-weight: bold;
+    }
+
+    pre {
+      background-color: #f5fbff; /* very light blue */
+      border: 1px solid #0c3574; /* medium blue border */
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    pre.simple {
+      background-color: #f0f9ff; /* very light blue */
+      border: 0px solid #f8f8f8; /* medium blue border */
+      padding: 2px;
+      border-radius: 2px;
+    }
+
+    /* Container margin */
+    div {
+      margin-top: 20px;
+    }
+
+    /* Sticky Table of Contents */
+    .toc {
+      position: fixed;
+      top: 5px;
+      left: 15px;
+      width: 215px;
+      background-color: #bbdefb;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .toc h3 {
+      margin-top: 1;
+      font-size: 16px;
+      color: #0c3574;
+    }
+    .toc ul {
+      list-style-type: none;
+      padding-left: 10px;
+      margin-bottom: 5px;
+      margin-top: 6px;
+    }
+    .toc li {
+      margin-bottom: 10px;
+      margin-top: 10px;
+    }
+    .toc a {
+      color: black;
+      text-decoration: none;
+    }
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    /* Container spacing */
+.parameters-section {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* First-level bullets */
+.parameters-section > ul > li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  color: black; /* dark academic blue */
+}
+
+/* Second-level bullets */
+.parameters-section ul ul li {
+  margin-bottom: 8px;
+  color: black;
+}
+
+/* Bullet styling */
+.parameters-section ul {
+  list-style-position: inside;
+}
+
+.parameters-section ul ul {
+  padding-left: 20px;
+  list-style-type: circle; /* nicer than dash */
+}
+
+/* Input styling for clean alignment */
+.parameters-section input[type="number"] {
+  width: 70px;
+  padding: 3px 5px;
+  border: 1px solid #84c4f9;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.parameters-section select {
+  padding: 3px 5px;
+  border: 1px solid #84c4f9;
+  border-radius: 4px;
+  margin-left: 6px;
+  background-color: white; /* optional but often needed for consistent look */
+}
+
+.danger-text {
+  color: #cf4a4a;
+  font-weight: 700;
+}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<!-- ################################################### -->
+<!-- ################################################### -->
+<!-- ############## Start of body of the document ###### -->
+<!-- ################################################### -->
+<!-- ################################################### -->
+<body>
+  <!-- Sticky Table of Contents -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ul>
+    <li><a href="#Chapter1">1. Upload data</a>
+      <ul>
+        <li><a href="#loadzip">1.1 Upload and extract the ZIP</a></li>
+        <li><a href="#loadIntoR">1.2 Upload files into R</a></li>
+        <li><a href="#params_def_section">1.3 Define parameters</a></li>
+      </ul>
+    </li>
+    <li><a href="#Chapter2">2. Data classification</a>
+      <ul>
+        <li><a href="#class_calc">2.1 Classification of the curves</a></li>
+        <li><a href="#class_plot">2.2 Plot the results</a></li>
+        <li><a href="#class_export">2.3 Export the results</a></li>
+      </ul>
+    </li>
+    <li><a href="#Chapter3">3. Curve metrics</a>
+      <ul>
+        <li><a href="#final_model_section">3.1 Select the final model</a></li>
+        <li><a href="#compute_metrics_section">3.2 Compute curve metrics</a></li>
+        <li><a href="#plot_curve_section">3.3 Plot individual curve</a></li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+
+<!-- Header of the HTML document -->
+<h1><b>MILAN</b>: Cell curves classification</h1>
+<h2>Some super subtitle</h2>
+<p><b>Authors, Team</b></p>
+<p>December 19, 2025</p>
+<!-- Row with current state of the webR -->
+<div>
+    <pre><code id="webR-state">Loading webR, please wait...</code></pre>
+</div>
+
+<!-- script with webR code -->
+<script type="module">
+  // ################################################### 
+  // ################################################### 
+  // ############# initialize webR ##################### 
+  // ################################################### 
+  // ################################################### 
+
+  import { WebR } from "https://webr.r-wasm.org/latest/webr.mjs";
+  const webR = new WebR();
+  await webR.init();
+
+  // Load packages and display current webR state
+  const outElem = document.getElementById('webR-state');
+  outElem.innerText = 'Loading packages, please wait...';
+  await webR.installPackages(['dplyr', 'ggplot2', 'tidyr', 'afmToolkit', 'changepoint'], true);
+  const outElem2 = document.getElementById('webR-state');
+  outElem2.innerText = 'Everything is ready!';
+  let currentCanvasId = null;
+
+  //#############################################################
+  // Define custom functions
+  //#############################################################
+
+  await webR.evalR(`
+readSPM <- function(filename){
+  require("tidyr")
+  require("dplyr")
+  require("ggplot2")
+  options(dplyr.print_max = 1e9)
+
+  # read parameters
+  {
+    params <- data.frame(
+      section = character(), 
+      n = integer(), 
+      text = character()
+    )
+    con <- file(filename, "rb")
+    repeat {
+      line <- sub('.', '', readLines(con, n = 1), useBytes = TRUE)
+      if (grepl('^[*]', line, useBytes = TRUE)) {
+        section <- sub('(.Ciao |.)(.*) list', '\\\\2', line, useBytes = TRUE)
+        if (section %in% params$section) {n <- n + 1} else {n <- 1}
+        if (section == "File end") {break}
+      } 
+      else {
+        params <- params |> add_row(section = section, n = n, text = line)
+      }
+    }
+    close(con)
+  }
+  
+  params <- params |>
+    separate_wider_regex(
+      cols = "text", 
+      patterns = c(key = ".*", ": ", value = ".*"), 
+      too_few = "align_start"
+    ) |> 
+    mutate(
+      section = factor(section)
+    )
+  
+  # read data
+  
+  int2 <- readBin(filename, what = "integer", size = 2, n = ceiling(file.size(filename) / 2), endian = "little")
+  int4 <- readBin(filename, what = "integer", size = 4, n = ceiling(file.size(filename) / 4), endian = "little")
+  
+  block1.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 1) |> select(value) |> as.double()/2 + 1
+  block1.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 1) |> select(value) |> as.double()/2
+  block1.end <- block1.start + block1.length - 1
+  
+  block2.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 2) |> select(value) |> as.double()/4 + 1
+  block2.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 2) |> select(value) |> as.double()/4
+  block2.end <- block2.start + block2.length - 1
+  
+  # block3.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+  #   filter(section == "force image", n == 3) |> select(value) |> as.double()/2 + 1
+  # block3.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+  #   filter(section == "force image", n == 3) |> select(value) |> as.double()/2
+  # block3.end <- block3.start + block3.length - 1
+  
+  
+  # 1. blok
+  
+  Spring.constant <- params |> filter(grepl("spring", key, ignore.case = TRUE), n == 1) |> 
+    select(value) |> as.double()
+  
+  txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 1)
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\\\(")[[1]][2], "V/LSB")[[1]][1])
+  
+  txt <- params |> filter(grepl("@Sens. Deflsens", key, ignore.case = TRUE))
+  nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
+  
+  txt <- params |> filter(section == "force image", grepl("Samps", key, ignore.case = TRUE), n == 1)
+  n.x <- as.numeric(strsplit(txt$value, " ")[[1]][2])
+  n.y <- as.numeric(strsplit(txt$value, " ")[[1]][1])
+  n <- block1.length/4  # n jsou snad stejna pro vsechny bloky
+  
+  raw.block <- int2[block1.start:block1.end] |> matrix(nrow = 2*n, byrow = TRUE)
+  
+  X <- raw.block[1:n, 1]
+  Y <- raw.block[(n+1):(2*n), 1]
+  blok1 <- cbind(X, Y)
+  
+  X.V <- X * V.LSB
+  Y.V <- Y * V.LSB
+  blok1.V <- cbind(X.V, Y.V)
+  
+  X.nm <- X.V * nm.V
+  Y.nm <- Y.V * nm.V
+  blok1.nm <- cbind(X.nm, Y.nm)
+  
+  X.nN <- X.nm * Spring.constant
+  Y.nN <- Y.nm * Spring.constant
+  blok1.nN <- cbind(X.nN, Y.nN)
+  
+  # 2. blok
+  
+  Spring.constant <- params |> filter(grepl("spring", key, ignore.case = TRUE), n == 2) |> 
+    select(value) |> as.double()
+  
+  txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 2)
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\\\(")[[1]][2], "V/LSB")[[1]][1])
+  
+  txt <- params |> filter(section == "scan", grepl("@Sens. ZsensSens", key, ignore.case = TRUE))
+  nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
+  
+  raw.block <- int4[block2.start:block2.end] |> matrix(nrow = n)
+  
+  X <- raw.block[, 1]
+  Y <- raw.block[, 2]
+  blok2 <- cbind(X, Y)
+  
+  X.V <- X * V.LSB
+  Y.V <- Y * V.LSB
+  blok2.V <- cbind(X.V, Y.V)
+  
+  X.nm <- X.V * nm.V
+  Y.nm <- Y.V * nm.V
+  blok2.nm <- cbind(X.nm, Y.nm)
+  
+  X.nN <- X.nm * Spring.constant
+  Y.nN <- Y.nm * Spring.constant
+  blok2.nN <- cbind(X.nN, Y.nN)
+  
+  ### separation
+  
+  ind.x <- 1:n.x
+  ind.y <- 1:n.y
+  height <- c(-rev(blok2.nm[ind.x, 1]), -blok2.nm[ind.y, 2])
+  deflection.nm <- c(rev(blok1.nm[ind.x, 1]), blok1.nm[ind.y, 2])
+  separation <- c(rev(blok1.nm[ind.x, 1] - blok2.nm[ind.x, 1]), blok1.nm[ind.y, 2] - blok2.nm[ind.y, 2])
+  contact.point <- separation[n.x]
+  if (n.x < n) {contact.point <- 0}
+  deflection.nN <- c(rev(blok1.nN[ind.x, 1]), blok1.nN[ind.y, 2])
+  
+  df.final <- data.frame(height = height, deflection.nm = deflection.nm,
+                         separation = separation - contact.point, 
+                         deflection.nN = deflection.nN,
+                         segment = factor(rep(c("Approach", "Retract"), times = c(n.x, n.y))))
+  
+  # part.name <- strsplit(filename, "spm")[[1]]
+  # print(paste0("I'm exporting ", filename))
+  return(df.final)
+}
+
+
+# curve
+# autocut = 0.7
+cut_curve = function(curve, autocut = 0.7){
+
+    autocut_wanted_indexes = round(autocut * length(curve)):length(curve)
+    y = curve[curve > (median(curve) + IQR(curve))]
+    x = which(curve > (median(curve) + IQR(curve)))
+    x_cut = x[x %in% autocut_wanted_indexes]
+    y_cut = y[x %in% autocut_wanted_indexes]
+
+    if(length(x) <= 1 | length(x_cut) <= 1){
+        x_cut = curve[autocut_wanted_indexes]
+        y_cut = curve[autocut_wanted_indexes]
+    }
+
+    return(data.frame(x = x_cut, y = y_cut))
+}
+
+# data
+# times = 5
+resample = function(data, times = 5){
+    data_resampled = suppressWarnings(approx(x = data$x, y = data$y, n = nrow(data) * times)) 
+    data_resampled = data.frame(x = data_resampled$x, y = data_resampled$y)
+    return(data_resampled)
+}
+
+# cut_data
+# nups
+# ndowns
+# min_peak_height_proportion
+n_peaks = function(cut_data, nups = 10, ndowns = 5, min_peak_height_proportion = 0.05){
+    cut_data_spread = max(cut_data$y) - min(cut_data$y)
+    sign_of_diffs = sign(diff(cut_data$y)) + 2 
+    peak_pattern = c(rep(3, nups), rep(1, ndowns)) 
+
+    haystack = paste(sign_of_diffs, collapse = "")
+    needle = paste(peak_pattern, collapse = "")
+
+    matches = gregexpr(needle, haystack)[[1]]
+
+    num_of_bad_peaks = 0
+
+    if(matches[1] != -1){ # if there are any peaks
+        for(i in 1:length(matches)){
+            peak_height = cut_data$y[matches[i]  + round(nups / 2)]
+
+            if(peak_height < min(cut_data$y) + min_peak_height_proportion * cut_data_spread){ # if the peak is too small
+            num_of_bad_peaks = num_of_bad_peaks + 1
+            }
+        }
+    }
+
+    n_peaks = ifelse(matches[1] == -1, 0, length(matches) - num_of_bad_peaks) 
+
+    return(n_peaks)
+}
+
+# newdata
+brute_force = function(newdata){
+
+    predictions = c()
+
+    for(i in 1:nrow(newdata)){
+        curve_data = newdata[i, ]
+        
+        if(curve_data$number_of_peaks == 1){
+             predictions[i] = "one"
+        } 
+        if(curve_data$number_of_peaks == 2){
+             predictions[i] = "double"
+        } 
+        if(curve_data$number_of_peaks == 0){
+            predictions[i] = "none"
+        } 
+        if(curve_data$number_of_peaks > 2 | curve_data$deflection_variance_half > 1){
+            predictions[i] = "bad curves"
+        }
+    }
+
+    return(predictions)
+}
+
+# newdata
+tree = function(newdata) {
+    predictions = c()
+    for(i in 1:nrow(newdata)){
+        if(newdata$number_of_peaks[i] < 1) {
+            if(newdata$deflection_variance_half[i] >= 0.58){
+                predictions[i] = "bad curves"
+            } else {
+                predictions[i] = "none"
+            }
+        } else {
+            if(newdata$number_of_peaks[i] >= 2){
+                if(newdata$deflection_variance_half[i] >= 0.2){
+                    predictions[i] = "bad curves"
+                } else {
+                    predictions[i] = "double"
+                }
+            } else if(newdata$shakiness[i] >= 0.21){
+                predictions[i] = "double"
+            } else {
+                predictions[i] = "one"
+            }
+        }
+    }
+    return(predictions)
+}
+
+# newdata
+forest = function(newdata) {
+    predictions = c()
+    for(i in 1:nrow(newdata)){
+        if(newdata$number_of_peaks[i] < 0.5) {
+            if(newdata$deflection_variance_half[i] < 0.608543416951698){
+                if(newdata$shakiness[i] < 0.62573993026997){
+                    predictions[i] = "none"
+                } else {
+                    predictions[i] = "double"
+                }
+            } else {
+                if(newdata$shakiness[i] < 0.0917451246672308){
+                    if(newdata$shakiness[i] < 0.0606477994002165){
+                        predictions[i] = "bad curves"
+                    } else {
+                        predictions[i] = "none"
+                    }
+                } else {
+                    predictions[i] = "bad curves"
+                }
+            }
+        } else {
+            if(newdata$shakiness[i] < 0.188986228716363){
+                if(newdata$number_of_peaks[i] < 1.5){
+                    predictions[i] = "one"
+                } else {
+                    predictions[i] = "double"
+                }
+            } else{
+                if(newdata$deflection_variance_half[i] < 0.19805673925551){
+                    predictions[i] = "double"
+                } else {
+                    predictions[i] = "bad curves"
+                }
+            }
+        }
+    }
+    return(predictions)
+}
+
+peak_points = function(smooth_cut_data, raw_data, nups = 10, ndowns = 5, min_peak_height_proportion = 0.05, correction = TRUE){
+    smooth_cut_data_spread = max(smooth_cut_data$y) - min(smooth_cut_data$y) # to get rid of peaks which are too small
+    sign_of_diffs = sign(diff(smooth_cut_data$y)) + 2 
+    peak_pattern = c(rep(3, nups), rep(1, ndowns)) 
+
+    haystack = paste(sign_of_diffs, collapse = "") # pattern of all sign differences
+    needle = paste(peak_pattern, collapse = "") # peak pattern, but collapsed
+
+    matches = gregexpr(needle, haystack)[[1]] 
+
+    ### find peak position in the smooth loess data
+    if (matches[1] != -1) { # if there are any peaks
+        keep = logical(length(matches))
+        for (i in 1:length(matches)) {
+            peak_height = smooth_cut_data$y[matches[i]  + round(nups / 2)]
+            keep[i] = peak_height >= min(smooth_cut_data$y) + min_peak_height_proportion * smooth_cut_data_spread 
+        }
+        matches = matches[keep]
+    } 
+
+    if(length(matches) == 0){
+        return(data.frame(x = NA, y = NA))
+    }
+        
+    smooth_peak_positions = data.frame(x = smooth_cut_data$x[matches + nups + 1], y = smooth_cut_data$y[1 + matches + nups + 1])
+
+    if(correction == FALSE){
+        return(smooth_peak_positions)
+    } else {
+        ### then find the exact peak position in the raw data
+        peak_position_x = peak_position_y = numeric(0)
+        for(i in 1:nrow(smooth_peak_positions)){
+            # look only at a small window around the loess peak
+            window_x = seq(round(smooth_peak_positions$x[i]) - 5, round(smooth_peak_positions$x[i]) + 30, by = 1)
+            window_y = raw_data$y[window_x]
+            window_signs = na.omit(sign(diff(window_y)))
+            # check if the window isn't too large 
+            if((-1 %in% window_signs) & (tail(window_signs, 1) == 1)){ 
+                # if the window already passed the post peak dip and the curve is already growing again, then cut that part
+                window_x = window_x[1:(tail(which(window_signs == -1), 1) + 1)] 
+                # keep only searching for real peak when the curve is increasind and then dipping, not further
+                window_y = raw_data$y[window_x]
+            }
+            peak_position_y = c(peak_position_y, raw_data$y[window_x[which.max(window_y)]])
+            peak_position_x = c(peak_position_x, raw_data$x[window_x[which.max(window_y)]])
+        }
+        
+        return(data.frame(x = peak_position_x, y = peak_position_y))
+    }
+}
+
+dip_points = function(smooth_cut_data, raw_data, peak_point, nups = 5, ndowns = 10, min_dip_height_proportion = 0.05, correction = TRUE){
+    peak_points_positions = peak_point
+    
+    if(is.na(peak_points_positions$x[1])){
+        return(data.frame(x = NA, y = NA))
+    }
+
+    dip_position_x = dip_position_y = numeric(0)
+    for(i in 1:nrow(peak_points_positions)){
+        # look only at a small window after the peak
+        window_x = seq(round(peak_points_positions$x[i]), round(peak_points_positions$x[i]) + 30, by = 1)
+        window_y = raw_data$y[window_x]
+        window_signs = na.omit(sign(diff(window_y)))
+        # only look at the part of the window where the curve is decreasing
+        if (-1 %in% window_signs) { 
+            window_x = window_x[1:(tail(which(window_signs == -1), 1) + 1)] # select only the part where it is decreasing
+            window_y = raw_data$y[window_x]
+        }
+        # make it so it cannot sink below the the median
+        window_y = window_y[window_y > median(raw_data$y)]
+        window_x = window_x[window_y > median(raw_data$y)]
+        # take the poisiton of a local minima as the dip point 
+        dip_position_y = c(dip_position_y, raw_data$y[window_x[which.min(window_y)]])
+        dip_position_x = c(dip_position_x, raw_data$x[window_x[which.min(window_y)]])
+    }
+        
+    return(data.frame(x = dip_position_x, y = dip_position_y))
+}
+
+contact_point_afmtoolkit <- function(z, y, y_smooth, mul1 = 1, mul2 = 10){
+  # Using AFMToolkit package
+  # Parameters
+  # z ... height
+  # y ... deflection.nN
+  # mul1 ... First multiplier for the first alarm threshold 
+  # mul2 ... Second multiplier for the second alarm threshold 
+  
+  ## formatovani dat
+  datafm <- afmdata(data.frame(Z = z, Force = y, 
+                               Segment = rep("approach", length(y))))
+  
+  ## contact point
+  datafm <- afmContactPoint(datafm, width = 8, mul1, mul2, lagdiff = 8, 
+                            Delta = TRUE, loessSmooth = FALSE)
+  # Delta: if TRUE, then the statistic for determining the contact point is 
+  # the differences between two consecutive values of the slope of the local 
+  # regression line. If FALSE then the slope itself is used.(s FALSE to nechce fungovat)
+  
+  df <- list(c.point = datafm$CP$CP, ind = datafm$CP$iCP)
+
+  # Method 1
+  ind <- changepoint::cpt.mean(y, class = FALSE)
+  out.change <- list(c.point = z[ind[1]], ind = ind[1])
+
+  # Method 2
+  out.afmtoolkit<- list(c.point = df$c.point, ind = df$ind)
+
+  # Put together
+  cpoints <- c(out.change$c.point, out.afmtoolkit$c.point)
+
+  # Final point
+  cp <- weighted.mean(cpoints, w = c(2/3, 1/3))
+
+  return(
+    data.frame(
+      x = which.min(abs(z - cp)), 
+      y = y_smooth[which.min(abs(z - cp))]
+    )
+  )
+}
+
+contact_point = function(curve, peak_points, autocut = 0.65){
+
+    if(!is.na(peak_points$y[1])){
+        peak_height = max(peak_points$y) - median(curve) # consider the highest peak
+    } else {
+        peak_height = max(curve) - median(curve)
+    }
+
+    autocut_wanted_indexes = round(autocut * length(curve)):length(curve)
+    y = curve[curve > (median(curve) + peak_height * 0.01)]
+    x = which(curve > (median(curve) + peak_height * 0.01))
+    x_cut = x[x %in% autocut_wanted_indexes]
+    y_cut = y[x %in% autocut_wanted_indexes]
+
+    if(length(x) <= 1 | length(x_cut) <= 1){
+        x_cut = curve[autocut_wanted_indexes]
+        y_cut = curve[autocut_wanted_indexes]
+    }
+
+    # dont search after the first peak is reached
+    if(!is.na(peak_points$x[1])){
+        x_cut = x_cut[x_cut < peak_points$x[1]] # search only before peak
+        y_cut = y_cut[x_cut < peak_points$x[1]] # search only before peak
+    }
+
+    # what if we cut everything
+    if(length(x_cut) == 0){
+        warning("Overcutting, backtrack.")
+        x_cut = curve[autocut_wanted_indexes]
+        y_cut = curve[autocut_wanted_indexes]
+        return(data.frame(x = x_cut[1], y = y_cut[1]))
+    }
+
+    # if the detected point is too far away from the peak, make the searched area more narrow 
+    if(!is.na(peak_points$x[1])){
+        max_peak_width = max(x) * 0.2 # we will search 20 % of the curve before the peak (cutting is preserved)
+        if((peak_points$x[1] - x_cut[1]) > max_peak_width){ 
+            # if the contact point is too far, we constrict the area
+            x_cut = x_cut[x_cut > (peak_points$x[1] - round(max_peak_width))]
+            y_cut = y_cut[x_cut > (peak_points$x[1] - round(max_peak_width))]
+        }
+    }
+
+    return(data.frame(x = x_cut[1], y = y_cut[1]))
+}
+
+contact_point2 = function(curve, peak_point, autocut = 0.65){
+    n = round(length(curve) * 0.65)
+    x = 1:n
+    y = curve[1:n]
+
+    if(is.na(peak_point$x[1])){
+        return(data.frame(x = 0, y = 0))
+    }
+
+    # line
+    slope = sum((x - mean(x)) * (y - mean(y))) / sum((x - mean(x))^2)
+    intercept = mean(y) - slope * mean(x)
+
+    # curve
+    x = 1:length(curve)
+    edge = tail(which(curve[1:round(peak_point$x[1])] < median(curve)), 1)
+    area = edge:(peak_point$x[1] - 1)
+    model = lm(curve[area] ~ x[area] + I((x[area])^2))
+    pred = model$coefficients[1] + x * model$coefficients[2] + (x)^2 * model$coefficients[3]
+
+    # contact
+    d = (model$coefficients[2] - slope)^2 - (4 * model$coefficients[3] * (model$coefficients[1] - intercept))
+    contact_x = (- (model$coefficients[2] - slope) + sqrt(d)) / (2 * model$coefficients[3])
+
+    max_it = 1
+    while(is.na(contact_x) & max_it < 100){
+    d = (model$coefficients[2] - slope)^2 - (4 * model$coefficients[3] * (model$coefficients[1] - intercept + diff(range(curve)) / 100))
+    contact_x = (- (model$coefficients[2] - slope) + sqrt(abs(d))) / (2 * model$coefficients[3])
+    max_it = max_it + 1
+    }
+
+    return(data.frame(x = contact_x, y = 0))
+}
+
+compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
+    if(is.na(dip_points$x[1]) | is.na(dip_points$y[1])){ # if there is no dip point detected (no membrane), we cannot compute metrics
+        warning("Cannot compute metrics")
+        return(list(z = NA, f = NA))
+    } else {
+        separation = curve_data$separation
+        deflection = curve_data$deflection.nm
+        f = separation[peak_points$x] - separation[dip_points$x]
+        z = deflection[dip_points$x] - deflection[contact_point$x]
+        return(list(z = z, f = f))
+    }
+}
+  
+  `);
+
+  // ################################################### 
+  // ################################################### 
+  // ############# Load the data   ##################### 
+  // ################################################### 
+  // ###################################################
+
+  //#############################################################
+  // Select whether the user uploads JPK or SPM
+  //#############################################################
+
+  //const fileType = document.getElementById("fileType");
+  //const fileType_output = document.getElementById("fileType_output");
+
+  // On change, define variable in R
+  // fileType.addEventListener("change", async () => {
+  //   const chosenType = fileType.value; // "jpk" or "spm"
+  //   await webR.evalRVoid(`
+  //   file_type <- "${chosenType}"
+  //   file_type <- ifelse(file_type == "select file type", "none", file_type)
+  //   `);
+
+  //   // Check from R
+  //   const fileType_result = await (await webR.evalR("file_type")).toArray();
+  //   fileType_output.textContent = `Selected file type = ${fileType_result}`;
+  // });
+
+  // Initialize with default
+  // (async () => {
+  //   await webR.evalRVoid(`file_type <- "${fileType.value}"`);
+  //   const fileType_result = await (await webR.evalR("file_type")).toArray();
+  //   fileType_output.textContent = `Selected file type = ${fileType_result}`;
+  // })();
+
+  //#############################################################
+  // Load the zip file
+  //#############################################################
+
+  // # Define variables
+  // ## Variable where the zip file will be stored
+  const zipInput = document.getElementById('zipFile');
+  // ## Variable for button that uploads the zip
+  const uploadZipBtn = document.getElementById('uploadZipBtn');
+  // ## Variable for displaying current status
+  const zipStatus = document.getElementById('zipStatus');
+
+  // What happens if the user press the button
+  uploadZipBtn.addEventListener('click', async () => {
+    try {
+      if (!zipInput.files || zipInput.files.length === 0) {
+        zipStatus.textContent = "Please select a ZIP file first.";
+        return;
+      }
+
+      const file = zipInput.files[0];
+      const arrayBuffer = await file.arrayBuffer();
+
+      zipStatus.textContent = "Extracting ZIP file...";
+      const zip = await JSZip.loadAsync(arrayBuffer);
+
+      const zipRoot = "/myzip"; // dedicated folder for this zip
+      try { webR.FS.mkdir(zipRoot); } catch(e){}  // create if not exists
+
+
+      // Iterate over files in the zip and write them into webR filesystem
+      for (const [path, zipEntry] of Object.entries(zip.files)) {
+        if (zipEntry.dir) continue; // skip directories
+        const content = await zipEntry.async("uint8array");
+        const destPath = zipRoot + "/" + path;  // keep folder structure
+        // Ensure folder exists in MEMFS
+        const dirs = destPath.split("/").slice(1, -1);
+        let currentPath = "";
+        for (const d of dirs) {
+          currentPath += "/" + d;
+          try {
+            webR.FS.mkdir(currentPath);
+          } catch (e) {} // ignore if already exists
+        }
+        webR.FS.writeFile(destPath, content);
+      }
+
+      zipStatus.textContent = "✅ ZIP extracted into webR filesystem.";
+
+      await webR.evalRVoid(`subfolders <- sub(".*/", "", list.dirs("/myzip", recursive = FALSE))`);
+
+      let firstLevelFolders = await webR.evalR(`subfolders`);
+      console.log("Files available in main folder:", await firstLevelFolders.toArray());
+
+      // Convert to arrays
+      let firstLevelFoldersArray = await firstLevelFolders.toArray();
+
+      // Display in HTML
+      document.getElementById("main-folders-text").textContent = firstLevelFoldersArray.length 
+        ? firstLevelFoldersArray.join("\n") 
+        : "No folders found in main folder.";
+
+    } catch (err) {
+      console.error(err);
+      zipStatus.textContent = "Error: " + err.toString();
+    }
+  });
+
+  //#############################################################
+  // Upload into R
+  //#############################################################
+
+  window.UploadIntowebR = async function () {
+    const outElem = document.getElementById('UploadIntowebR_output');
+    outElem.innerText = 'Uploading all files into R ...\n';
+
+    // Initialize R variables
+    await webR.evalRVoid(`new_data <- data.frame(); curve_index <- 1`);
+
+    // List all folders in /myzip/
+    const folders_result = await webR.evalR("list.dirs('/myzip/', recursive = TRUE)");
+    const folders = await folders_result.toArray(); // <-- ensures iterable array
+
+    let curve_index = 1;
+
+    for (const folder of folders) {
+      // List files in this folder and filter by type
+      const files_result = await webR.evalR(`
+        all_files <- list.files("${folder}", recursive = FALSE)
+        all_types <- sub(".*\\\\.", "", all_files)
+        file_type <- "spm"
+        curve_files <- all_files[all_types == file_type]
+        curve_files
+      `);
+      const curve_files = await files_result.toArray(); // <-- ensures iterable array
+
+      // Only process folders with curve files
+      if (curve_files.length >= 1) {
+        for (const curve_file of curve_files) {
+          const curve_file_path = `${folder}/${curve_file}`;
+
+          // Load and process each curve in R
+          await webR.evalRVoid(`
+            curve_file_path <- "${curve_file_path}"
+            curve <- readSPM(curve_file_path)
+            curve <- curve |>
+              mutate(full_path = gsub('/myzip//', '', curve_file_path), curve_index = ${curve_index}) |>
+              filter(segment == "Approach")
+            curve$index <- 1:nrow(curve)
+            curve$folder <- strsplit(curve_file_path, "/")[[1]][4]
+            new_data <- bind_rows(new_data, curve)
+          `);
+
+          // Update progress in HTML
+          const curve_file_path_shortened1 = await webR.evalR("gsub('/myzip//', '', curve_file_path)");
+          const curve_file_path_shortened2 = await curve_file_path_shortened1.toArray();
+          outElem.innerText = `Loaded ${curve_index} curves (current curve: ${curve_file_path_shortened2})`;
+          curve_index++;
+        }
+      }
+    }
+
+    // Show final count
+    outElem.innerText = `✅ Files loaded successfully: ${curve_index - 1} curves in total.`;
+  };
+
+  //#############################################################
+  // Define parameters and calculate characterictics
+  //#############################################################
+
+  const correction = document.getElementById("correction");
+
+  // On change, define variable in R
+  correction.addEventListener("change", async () => {
+    const chosencorrection = correction.value; // TRUE or FALSE
+    await webR.evalRVoid(`
+    correction <- "${chosencorrection}"
+    `);
+  });
+
+  // Initialize with default
+  (async () => {
+    await webR.evalRVoid(`correction <- "${correction.value}"`);
+  })();
+
+  // autocut
+  document.getElementById("autocut").addEventListener("change", function() {
+      const value = parseFloat(this.value);
+      if (!Number.isFinite(value) || value <= 0 || value >= 1) {
+          alert("Autocut parameter should be a number between 0 and 1.");
+          this.value = 0.5;  // optional reset to default
+      }
+  });
+
+  // resample_times
+  document.getElementById("resample_times").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("Resample times must be a whole number greater than 0.");
+      this.value = 5; // default value
+    }
+  });
+
+  // nups
+  document.getElementById("nups").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("nups parameter must be a whole number greater than 0.");
+      this.value = 10; // default value
+    }
+  });
+
+  // ndowns
+  document.getElementById("ndowns").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("ndowns parameter must be a whole number greater than 0.");
+      this.value = 5; // default value
+    }
+  });
+
+  // nups_dip
+  document.getElementById("nups_dip").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("Dip nups parameter must be a whole number greater than 0.");
+      this.value = 30; // default value
+    }
+  });
+
+  // ndowns_dip
+  document.getElementById("ndowns_dip").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("Dip ndowns parameter must be a whole number greater than 0.");
+      this.value = 10; // default value
+    }
+  });
+
+  // min_peak_height_proportion
+  document.getElementById("min_peak_height_proportion").addEventListener("change", function() {
+      const value = parseFloat(this.value);
+      if (value <= 0 || value >= 1) {
+          alert("Minimal peak height proportion should be a number between 0 and 1.");
+          this.value = 0.05;  // optional reset to default
+      }
+      if (value >= 0.3 && value < 1) {
+          alert("Note that only very tall peaks will be detected.");
+      }
+  });
+
+  // lowess_deflection_f
+  document.getElementById("lowess_deflection_f").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("Lowess deflection f parameter must be greater than 0.");
+      this.value = 0.0001; // default value
+    }
+  });
+
+  // mul1
+  document.getElementById("mul1").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("mul1 parameter must be greater than 0.");
+      this.value = 1; // default value
+    }
+  });
+
+  // mul2
+  document.getElementById("mul2").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("mul2 parameter must be greater than 0.");
+      this.value = 10; // default value
+    }
+  });
+
+  window.summarizeTheData = async function() {
+
+    const outElem = document.getElementById('DataSumm_output');
+    outElem.innerText = 'Calculating summary statistics ...\n';
+
+    const autocut = document.getElementById("autocut").value || 0.5;
+    const resample_times = document.getElementById("resample_times").value || 5;
+    const nups = document.getElementById("nups").value || 10;
+    const ndowns = document.getElementById("ndowns").value || 5;
+    const nups_dip = document.getElementById("nups_dip").value || 30;
+    const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+    const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+    const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    const mul1 = document.getElementById("mul1").value || 1;
+    const mul2 = document.getElementById("mul2").value || 10;
+
+  await webR.evalRVoid(`
+      new_data2 = new_data |>
+        group_by(curve_index) |>
+        mutate(lowess_deflection = lowess(index, deflection.nm, f = ${lowess_deflection_f})$y) 
+
+      new_summarized_data = new_data2 |>
+        group_by(curve_index) |>
+        summarise(
+          deflection_variance_half = var(deflection.nm[1:round(0.5 * length(deflection.nm))]),
+          deflection_iqr = IQR(deflection.nm),
+          shakiness = mean(abs(diff(deflection.nm, lag = 5))),
+          number_of_peaks = n_peaks(resample(cut_curve(lowess_deflection, autocut = ${autocut}), times = round(${resample_times})), nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}),
+          full_path = first(full_path),
+          folder = first(folder)
+        )
+
+      number_of_curves_subfolders <- new_summarized_data |> pull(folder) |> table() |> as.data.frame()
+      number_of_curves_subfolders <- paste(number_of_curves_subfolders[, 1], number_of_curves_subfolders[, 2], sep = ": ")
+
+      new_model_data = new_summarized_data |> 
+        select(- c(curve_index, full_path, folder))
+    `)
+
+    // Show final message
+    outElem.innerText = 'Calculating summary statistics: ✅ DONE.';
+
+    // Get the vector from R
+    const folder_strings_result = await webR.evalR("number_of_curves_subfolders");
+    const folder_strings = await folder_strings_result.toArray(); // JS array of strings
+
+    folder_strings.forEach(str => {
+      outElem.innerHTML += "<br>" + str;
+    });
+  }
+
+
+  //#############################################################
+  // Classify
+  //#############################################################
+
+  window.ClassifyCurves = async function () {
+    const outElem = document.getElementById('ClassifyCurves_output');
+    outElem.innerText = 'Starting to classify ...\n';
+
+    // Initialize R variables
+    await webR.evalRVoid(`
+      brute_force_predictions <- brute_force(new_model_data)
+      tree_predictions <- tree(new_model_data)
+      forest_predictions <- forest(new_model_data)
+
+      # Disagreement between algorithms:
+      disagreement <- c(
+        paste0("Tree vs Forest:          ", round(sum(tree_predictions == forest_predictions) / length(tree_predictions) * 100, 2), "%"),
+        paste0("Brute force vs Forest:   ", round(sum(brute_force_predictions == forest_predictions) / length(tree_predictions) * 100, 2), "%"),
+        paste0("Tree vs Brute force:     ", round(sum(tree_predictions == brute_force_predictions) / length(tree_predictions) * 100, 2), "%")
+      )
+    `);
+
+    outElem.innerText = '✅ Classification: DONE\n';
+
+    // Get the vector from R
+    const disagreement_results = await webR.evalR("disagreement");
+    const disagreement_strings = await disagreement_results.toArray(); // JS array of strings
+
+    outElem.innerHTML += "<br><b>Agreement between classifiers:</b>";
+
+    disagreement_strings.forEach(str => {
+      outElem.innerHTML += "<br>" + str;
+    });
+
+    AgreementPlotBtn.removeAttribute("disabled");
+  };
+
+  //#############################################################
+  // Plot the results
+  //#############################################################
+
+//   let container_plot1 = document.getElementById('plot1-container');
+//   let button_plot1 = document.getElementById('plot1-button');
+
+//   // Declare canvas variable in outer scope so it is accessible in the loop
+//   let canvas = null;
+//   currentCanvasId = 'plot1-container';
+
+
+//   // --- Plot button click handler ---
+//   button_plot1.onclick = () => {
+//     container_plot1.replaceChildren(); // Clear previous plots
+
+//     // Send R code to webR
+//     webR.evalRVoid(`
+//       library(ggplot2)
+//       library(dplyr)
+//       library(tidyr)
+
+//       webr::canvas(width = 700, height = 300)
+
+//       # Prepare data for plotting
+//       forplot = new_summarized_data |>
+//         mutate(
+//           tree_prediction   = tree_predictions,
+//           forest_prediction = forest_predictions,
+//           brute_prediction  = brute_force_predictions,
+//           folder = factor(folder)
+//         ) |>
+//         pivot_longer(
+//           cols = c(tree_prediction, forest_prediction, brute_prediction),
+//           names_to = "method",
+//           values_to = "prediction"
+//         ) |>
+//         group_by(folder, method, prediction) |>
+//         summarize(count = n(), .groups = "drop") |>
+//         group_by(folder, method) |>
+//         mutate(pct = count / sum(count) * 100)
+
+//       # Create ggplot
+//       p1 <- ggplot(forplot, aes(x = method, y = pct, fill = prediction)) +
+//         geom_col(position = "stack") +
+//         facet_wrap(~ folder) +
+//         labs(
+//           title = "Prediction distribution per method",
+//           x = "Method",
+//           y = "Percentage",
+//           fill = "Prediction"
+//         ) +
+//         theme_minimal()
+
+//       print(p1)
+//       dev.off()
+//     `);
+//   };
+
+//   (async () => {
+//   let canvas = null;
+
+//   for (;;) {
+//     const output = await webR.read();
+
+//     if (output.type === 'canvas') {
+//       if (output.data.event === 'canvasNewPage') {
+//         // Use the canvas specified by currentCanvasId
+//         if (currentCanvasId) {
+//           canvas = document.getElementById(currentCanvasId);
+//           if (canvas) {
+//             // Optional: clear previous content
+//             const ctx = canvas.getContext('2d');
+//             ctx.clearRect(0, 0, canvas.width, canvas.height);
+//           } else {
+//             console.warn("Canvas with id " + currentCanvasId + " not found in DOM.");
+//           }
+//         } else {
+//           console.warn("canvasNewPage received but currentCanvasId is null.");
+//           canvas = null;
+//         }
+
+//       } else if (output.data.event === 'canvasImage') {
+//         if (canvas) {
+//           canvas
+//             .getContext('2d')
+//             .drawImage(output.data.image, 0, 0, canvas.width, canvas.height);
+//         } else {
+//           console.warn("Received canvasImage but no canvas is set for drawing.");
+//         }
+//       }
+
+//     } else {
+//       // Other types of output: print to console if you like
+//       console.log(output);
+//     }
+//   }
+// })();
+
+    window.AgreementPlotFunction = async function() {
+      await webR.evalRVoid(`
+          library(ggplot2)
+      library(dplyr)
+      library(tidyr)
+
+      webr::canvas(width = 700, height = 300)
+
+      # Prepare data for plotting
+      forplot = new_summarized_data |>
+        mutate(
+          tree_prediction   = tree_predictions,
+          forest_prediction = forest_predictions,
+          brute_prediction  = brute_force_predictions,
+          folder = factor(folder)
+        ) |>
+        pivot_longer(
+          cols = c(tree_prediction, forest_prediction, brute_prediction),
+          names_to = "method",
+          values_to = "prediction"
+        ) |>
+        group_by(folder, method, prediction) |>
+        summarize(count = n(), .groups = "drop") |>
+        group_by(folder, method) |>
+        mutate(pct = count / sum(count) * 100)
+
+      # Create ggplot
+      p1 <- ggplot(forplot, aes(x = method, y = pct, fill = prediction)) +
+        geom_col(position = "stack") +
+        facet_wrap(~ folder) +
+        labs(
+          title = "Prediction distribution per method",
+          x = "Method",
+          y = "Percentage",
+          fill = "Prediction"
+        ) +
+        theme_minimal()
+
+      print(p1)
+      dev.off()
+      `);
+
+      const msgs = await webR.flush();
+      msgs.forEach(msg => {
+        if (msg.type === 'canvas' && msg.data.event === 'canvasImage') {
+          const canvas = document.getElementById('AgreementPlot');
+          canvas.getContext('2d').drawImage(msg.data.image, 0, 0, canvas.width, canvas.height);
+        }
+      });
+
+    downloadAgreementPlot.removeAttribute("disabled");
+    download_data_AgreementPlot.removeAttribute("disabled");
+    }
+
+    //#############################################################
+    // 1.6 Save the data
+    //#############################################################
+
+    // Function to download canvas as image
+    document.getElementById('downloadAgreementPlot').addEventListener('click', () => {
+      const canvas = document.getElementById('AgreementPlot'); // change if using different canvas
+      if (!canvas) {
+        alert("Plot not found!");
+        return;
+      }
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'prediction_distribution.png';
+      a.click();
+    });
+
+    // Function to download the image data
+    document.getElementById('download_data_AgreementPlot').addEventListener('click', async () => {
+      try {
+        // Convert the R data.frame to CSV string
+        const csvText = await webR.evalR(`
+          paste(capture.output(write.csv(forplot, row.names = FALSE)), collapse = "\n")
+        `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
+
+        // Create a Blob and a temporary download link
+        const blob = new Blob([csvText], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'prediction_distribution_data.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving CSV: " + err);
+      }
+    });
+
+    // Function to download the data
+    document.getElementById('download-data').addEventListener('click', async () => {
+      try {
+        // Convert the R data.frame to CSV string
+        const csvText = await webR.evalR(`
+          results <- new_summarized_data |>
+              mutate(tree_prediction = tree_predictions,
+                     forrest_prediction = forest_predictions,
+                     brute_predictions = brute_force_predictions)
+
+          paste(capture.output(write.csv(results, row.names = FALSE)), collapse = "\n")
+        `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
+
+        // Create a Blob and a temporary download link
+        const blob = new Blob([csvText], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'classification_results.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving CSV: " + err);
+      }
+    });
+
+  //#############################################################
+  // Select the final model
+  //#############################################################
+
+  const finalmodel = document.getElementById("finalmodel");
+  const finalmodel_output = document.getElementById("finalmodel_output");
+
+  // On change, define variable in R
+  finalmodel.addEventListener("change", async () => {
+    const chosenFinalModel = finalmodel.value; // brute/tree/forest
+    await webR.evalRVoid(`
+    final_model <- "${chosenFinalModel}"
+    `);
+
+    // Check from R
+    const finalmodel_result = await (await webR.evalR("final_model")).toArray();
+    finalmodel_output.textContent = `Final model = ${finalmodel_result}`;
+  });
+
+  // Initialize with default
+  (async () => {
+    await webR.evalRVoid(`final_model <- "${finalmodel.value}"`);
+    const finalmodel_result = await (await webR.evalR("final_model")).toArray();
+    finalmodel_output.textContent = `Final model = ${finalmodel_result}`;
+  })();
+
+  //#############################################################
+  // ComputeMetrics
+  //#############################################################
+
+  const contactPointFunction = document.getElementById("contactPointFunction");
+  const contactPointFunction_output = document.getElementById("contactPointFunction_output");
+
+  // On change, define variable in R
+  contactPointFunction.addEventListener("change", async () => {
+    const contactPointFunction_value = contactPointFunction.value; 
+    await webR.evalRVoid(`
+    contactPointFunction_value <- "${contactPointFunction_value}"
+    contactPointFunction_value <- ifelse(contactPointFunction_value == "select method for contact point", "none", contactPointFunction_value)
+    `);
+
+    // Check from R
+    const contactPointFunction_result = await (await webR.evalR("contactPointFunction_value")).toArray();
+    contactPointFunction_output.textContent = `Selected method for contact point = ${contactPointFunction_result}`;
+  });
+
+  // Initialize with default
+  (async () => {
+    await webR.evalRVoid(`contactPointFunction_value <- "${contactPointFunction.value}"`);
+    const contactPointFunction_result = await (await webR.evalR("contactPointFunction_value")).toArray();
+    contactPointFunction_output.textContent = `Selected method for contact point = ${contactPointFunction_result}`;
+  })();
+
+  // #########################################################
+
+  window.ComputeMetrics = async function () {
+    const outElem = document.getElementById('ComputeMetrics_output');
+    outElem.innerText = 'Computing the metrics ...\n';
+
+    const autocut = document.getElementById("autocut").value || 0.5;
+    const resample_times = document.getElementById("resample_times").value || 5;
+    const nups = document.getElementById("nups").value || 10;
+    const ndowns = document.getElementById("ndowns").value || 5;
+    const nups_dip = document.getElementById("nups_dip").value || 30;
+    const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+    const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+    const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    const mul1 = document.getElementById("mul1").value || 1;
+    const mul2 = document.getElementById("mul2").value || 10;
+
+    // Initialize R variables
+    await webR.evalRVoid(`
+      library(afmToolkit)
+      library(changepoint)
+
+      contactPointFunction_value_custom <- contactPointFunction_value
+
+      if (final_model == "brute force") final_predictions = brute_force_predictions
+      if (final_model == "classification tree") final_predictions = tree_predictions
+      if (final_model == "random forest") final_predictions = forest_predictions
+      new_summarized_data$prediction = final_predictions
+      
+      summarized_data = new_summarized_data |> mutate(z1 = NA_real_, f1 = NA_real_,
+                                            z2 = NA_real_, f2 = NA_real_, CP_index = NA_real_)
+
+      for(i in 1:nrow(summarized_data)){
+          
+          # skip bad curves
+          if(summarized_data$prediction[i] == "bad curves" | summarized_data$prediction[i] == "none"){
+              next 
+          } else { # for curves without peak plot only contact point
+              curve_data = new_data2 |> filter(curve_index == i)
+              raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+              smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+              p = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+              if (contactPointFunction_value == "AFMToolkit") {
+                c = contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2})
+              } else if (contactPointFunction_value == "CUT") {
+                c = contact_point(curve_data$lowess_deflection, p, autocut = ${autocut})
+              } else {
+                c = contact_point2(curve_data$lowess_deflection, p, autocut = ${autocut})
+              }
+              d = dip_points(smooth_cut_data, raw_data, p, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
+
+              metrics = compute_metrics(curve_data, p, d, c)
+              
+              summarized_data[summarized_data$curve_index == i, "CP_index"] = c[1]
+
+              summarized_data[summarized_data$curve_index == i, "z1"] = metrics$z[1]
+              summarized_data[summarized_data$curve_index == i, "f1"] = metrics$f[1]
+              
+              if(length(metrics$z) > 1){
+                  summarized_data[summarized_data$curve_index == i, "z2"] = metrics$z[2]
+                  summarized_data[summarized_data$curve_index == i, "f2"] = metrics$f[2]
+              }
+          }
+      }
+    `);
+
+    outElem.innerText = '✅ Metrics computed: DONE\n';
+
+    // After CSV is loaded
+    const rowNames = await webR.evalR("unique(new_data2$full_path)");
+    const rowNamesArray = await rowNames.toArray();
+
+    const selectElem = document.getElementById("rowSelect");
+    selectElem.innerHTML = ""; // clear previous content
+    rowNamesArray.forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      selectElem.appendChild(option);
+    });
+
+    // enable dropdown and button
+    selectElem.disabled = false;
+    document.getElementById("plotRowBtn").disabled = false;
+
+  };
+
+  // Function to download the data
+    document.getElementById('download-data2').addEventListener('click', async () => {
+      try {
+        // Convert the R data.frame to CSV string
+        const csvText = await webR.evalR(`
+          paste(capture.output(write.csv(summarized_data, row.names = FALSE)), collapse = "\n")
+        `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
+
+        // Create a Blob and a temporary download link
+        const blob = new Blob([csvText], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'classification_results_metrics.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving CSV: " + err);
+      }
+    });
+
+    //#############################################################
+    // plotIndividualCurve
+    //#############################################################
+
+    const rowSelect = document.getElementById("rowSelect");
+    const rowSelect_output = document.getElementById("rowSelect_output");
+
+    // On change, define variable in R
+    rowSelect.addEventListener("change", async () => {
+      const rowSelectType = rowSelect.value; // name of curve
+      await webR.evalRVoid(`
+      selected_curve <- "${rowSelectType}"
+      selected_curve_next <- "NO"
+      `);
+
+      // Check from R
+      const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
+      rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
+    });
+
+    // Initialize with default
+    (async () => {
+      await webR.evalRVoid(`selected_curve <- "${rowSelect.value}"`);
+      const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
+      rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
+    })();
+
+    // #################################################
+
+    // window.plotIndividualCurve = async function () {
+    //   const outElem = document.getElementById('plotRowBtn');
+    //   outElem.innerText = 'Starting to visualize ...\n';
+
+    //   currentCanvasId = 'IndividualCurve_Plot';
+
+    //   const autocut = document.getElementById("autocut").value || 0.5;
+    //   const resample_times = document.getElementById("resample_times").value || 5;
+    //   const nups = document.getElementById("nups").value || 10;
+    //   const ndowns = document.getElementById("ndowns").value || 5;
+    //   const nups_dip = document.getElementById("nups_dip").value || 30;
+    //   const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+    //   const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+    //   const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    //   const mul1 = document.getElementById("mul1").value || 1;
+    //   const mul2 = document.getElementById("mul2").value || 10;
+
+    //   // Initialize R variables
+    //   await webR.evalRVoid(`
+    //     library(afmToolkit)
+    //     library(changepoint)
+
+    //     webr::canvas(width = 700, height = 300)
+      
+    //     if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+    //         p2 <- ggplot(data = data.frame(x = 0, y = 0, label = "Bad curve"), aes(x = x, y = y, label = label)) + 
+    //           geom_text(size = 20) + 
+    //           theme_void() 
+    //     } else {
+    //       curve_data = new_data2 |> filter(full_path == selected_curve)
+    //       raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+    //       smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+    //       peak_point = peak_points(smooth_cut_data, raw_data, correction = T, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+
+    //       points = rbind(
+    //           peak_points(smooth_cut_data, raw_data, correction = T, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+    //           dip_points(smooth_cut_data, raw_data, peak_point, correction = T, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+    //           contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
+    //           contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)")
+    //       )
+          
+    //       # for curves without peak plot only contact point
+    //       if(summarized_data$prediction[i] == "none") { 
+                
+    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+    //               geom_line(linewidth = 0.5) + 
+    //               theme_classic() + 
+    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+    //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+    //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+    //                   sep = ''),
+    //                   subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
+    //                                     "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
+
+    //       # for other curves plot contact, peak, and dip
+    //       } else { 
+
+    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+    //               geom_line(linewidth = 0.5) + 
+    //               theme_classic() + 
+    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+    //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+    //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+    //                   sep = ''),
+    //                   subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
+    //                                     "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
+    //       }
+    //     }
+
+    //     print(p2)
+    //     dev.off()
+    //   `);
+
+    //   outElem.innerText = 'Done. Do you want to plot another curve?\n'; 
+
+    // };
+
+    // // Function to download canvas as image
+    // document.getElementById('download_IndividualCurve_Plot').addEventListener('click', () => {
+    //   const canvas = document.getElementById('IndividualCurve_Plot'); // change if using different canvas
+    //   if (!canvas) {
+    //     alert("Plot not found!");
+    //     return;
+    //   }
+    //   const url = canvas.toDataURL("image/png");
+    //   const a = document.createElement('a');
+    //   a.href = url;         
+    //   a.download = `plot_curve.png`;
+    //   a.click();
+    // });
+
+    window.plotIndividualCurve = async function() {
+      const outElem = document.getElementById('plotRowBtn');
+      outElem.innerText = 'Starting to visualize ...\n';
+
+      const outElemCurve = document.getElementById('IndividualCurve_output');
+      outElemCurve.innerText = 'Creating the graph ...\n';
+
+      await webR.evalRVoid(`if (selected_curve_next != "NO") selected_curve <- selected_curve_next`);
+
+      const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
+      rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
+
+      const autocut = document.getElementById("autocut").value || 0.5;
+      const resample_times = document.getElementById("resample_times").value || 5;
+      const nups = document.getElementById("nups").value || 10;
+      const ndowns = document.getElementById("ndowns").value || 5;
+      const nups_dip = document.getElementById("nups_dip").value || 30;
+      const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+      const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+      const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const mul1 = document.getElementById("mul1").value || 1;
+      const mul2 = document.getElementById("mul2").value || 10;
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        library(afmToolkit)
+        library(changepoint)
+
+        webr::canvas(width = 700, height = 300)
+      
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+            curve_data = new_data2 |> filter(full_path == selected_curve)
+            raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+            smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+            # for bad curves
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                geom_line(linewidth = 1) + 
+                theme_classic() + 
+                ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
+        } else {
+          curve_data = new_data2 |> filter(full_path == selected_curve)
+          raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+          smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+          peak_point = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+
+          points = rbind(
+              peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
+              contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
+              data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (current)")
+          )
+          
+          # for curves without peak plot only contact point
+          if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
+                
+              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points[3:5, ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''))
+
+          # for other curves plot contact, peak, and dip
+          } else { 
+
+              # colors_point <- c("tomato", "deepskyblue", "forestgreen", ifelse())
+              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''),
+                      subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
+                                        "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
+          }
+        }
+
+        # change the selected curve to the next one
+        if (which(summarized_data$full_path == selected_curve) == nrow(summarized_data)) {
+          selected_curve_next <- summarized_data$full_path[1]
+        } else {
+          selected_curve_next <- summarized_data$full_path[which(summarized_data$full_path == selected_curve) + 1]
+        }
+
+        print(p2)
+        dev.off()
+      `);
+
+      outElem.innerText = 'Done! Do you want to plot the next curve?\n'; 
+
+      const msgs = await webR.flush();
+      msgs.forEach(msg => {
+        if (msg.type === 'canvas' && msg.data.event === 'canvasImage') {
+          const canvas = document.getElementById('IndividualCurve_Plot');
+          canvas.getContext('2d').drawImage(msg.data.image, 0, 0, canvas.width, canvas.height);
+        }
+      });
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+          points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
+        } else {
+          points_output <- points[1:2, ]
+
+          points_output <- rbind(points_output, c(summarized_data$CP_index[summarized_data$full_path == selected_curve], 0, "currentCP"))
+        }
+
+        # contact point:
+        current_contact_point_index <- points_output$x[3]
+        contact_index <- c(
+          paste0("Current contact point index: ", current_contact_point_index, " (", contactPointFunction_value_custom, ")")
+        )
+      `);
+
+      outElemCurve.innerText = "DONE! ";
+
+      // Get the vector from R
+      const contact_index_results = await webR.evalR("contact_index");
+      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+
+      contact_index_results_strings.forEach(str => {
+        outElemCurve.innerHTML +=  str + " ";
+      });
+
+      // set the default value for custom change
+      const current_contact_point_index = await webR.evalR("current_contact_point_index");
+      const current_contact_point_index_JS = (await current_contact_point_index.toArray())[0];
+
+      document.getElementById("custom_contact_point").value = current_contact_point_index_JS;
+
+      download_IndividualCurve_Plot.removeAttribute("disabled");
+      OverWriteBtn.removeAttribute("disabled");
+      OverWriteAllBtn.removeAttribute("disabled");
+      download_data_IndividualCurve_Plot.removeAttribute("disabled");
+      document.getElementById("custom_contact_point").disabled = false;
+    }
+
+    // Function to download canvas as image
+    document.getElementById('download_IndividualCurve_Plot').addEventListener('click', () => {
+      const canvas = document.getElementById('IndividualCurve_Plot'); // change if using different canvas
+      if (!canvas) {
+        alert("Plot not found!");
+        return;
+      }
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'plot_curve.png';
+      a.click();
+    });
+
+    // Function to download the image data
+    document.getElementById('download_data_IndividualCurve_Plot').addEventListener('click', async () => {
+      try {
+        // Convert the R data.frame to CSV string
+        const csvText = await webR.evalR(`
+          curve_data_to_download <- curve_data
+          curve_data_to_download$important_x_points <- NA
+          curve_data_to_download$important_x_points[points$x] <- points$point
+          paste(capture.output(write.csv(curve_data_to_download, row.names = FALSE)), collapse = "\n")
+        `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
+
+        // Create a Blob and a temporary download link
+        const blob = new Blob([csvText], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plot_curve_data.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving CSV: " + err);
+      }
+    });
+
+    //#################################################
+    // Overwrite contact point index
+    //#################################################
+    window.OverWriteFunc = async function() {
+      const outElem = document.getElementById('plotRowBtn');
+      outElem.innerText = 'Starting to visualize ...\n';
+
+      const outElemCurve = document.getElementById('IndividualCurve_output');
+      outElemCurve.innerText = 'Creating the graph ...\n';
+
+      const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
+      rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
+
+      const autocut = document.getElementById("autocut").value || 0.5;
+      const resample_times = document.getElementById("resample_times").value || 5;
+      const nups = document.getElementById("nups").value || 10;
+      const ndowns = document.getElementById("ndowns").value || 5;
+      const nups_dip = document.getElementById("nups_dip").value || 30;
+      const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+      const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+      const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const mul1 = document.getElementById("mul1").value || 1;
+      const mul2 = document.getElementById("mul2").value || 10;
+      
+      // Custom contact point
+      const custom_contact_point = document.getElementById("custom_contact_point").value || 0;
+
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        library(afmToolkit)
+        library(changepoint)
+
+        webr::canvas(width = 700, height = 300)
+      
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+            curve_data = new_data2 |> filter(full_path == selected_curve)
+            raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+            smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+            # for bad curves
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                geom_line(linewidth = 1) + 
+                theme_classic() + 
+                ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
+        } else {
+          curve_data = new_data2 |> filter(full_path == selected_curve)
+          raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+          smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+          peak_point = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+
+          points = rbind(
+              peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
+              contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)")
+          )
+          
+
+          ## Add custom contact point
+          points <- rbind(points, points[3, ])
+          points[6, 1] <- ${custom_contact_point}
+          points[6, 3] <- "contact (custom)"
+
+          p <- points[1, 1:2]
+          d <- points[2, 1:2]
+          c <- points[6, 1:2]
+          metrics = compute_metrics(curve_data, p, d, c)
+
+          summarized_data[summarized_data$full_path == selected_curve, "CP_index"] = c[1]
+
+          summarized_data[summarized_data$full_path == selected_curve, "z1"] = metrics$z[1]
+          summarized_data[summarized_data$full_path == selected_curve, "f1"] = metrics$f[1]
+          
+          if(length(metrics$z) == 2){
+              summarized_data[summarized_data$full_path == selected_curve, "z2"] = metrics$z[2]
+              summarized_data[summarized_data$full_path == selected_curve, "f2"] = metrics$f[2]
+          }
+          
+          # for curves without peak plot only contact point
+          if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
+                
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''))
+
+          # for other curves plot contact, peak, and dip
+          } else { 
+
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''),
+                      subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
+                                        "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
+          }
+        }
+
+        print(p3)
+        dev.off()
+      `);
+
+      outElem.innerText = 'Done! Do you want to plot the next curve?\n'; 
+
+      const msgs = await webR.flush();
+      msgs.forEach(msg => {
+        if (msg.type === 'canvas' && msg.data.event === 'canvasImage') {
+          const canvas = document.getElementById('IndividualCurve_Plot');
+          canvas.getContext('2d').drawImage(msg.data.image, 0, 0, canvas.width, canvas.height);
+        }
+      });
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+          points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
+        } else {
+          points_output <- points[c(1:2, 6), ]
+        }
+
+        # contact point:
+        current_contact_point_index <- points_output$x[3]
+        contact_index <- c(
+          paste0("Current contact point index: ", current_contact_point_index, " (custom)")
+        )
+      `);
+
+      outElemCurve.innerText = "DONE! ";
+
+      // Get the vector from R
+      const contact_index_results = await webR.evalR("contact_index");
+      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+
+      contact_index_results_strings.forEach(str => {
+        outElemCurve.innerHTML +=  str + " ";
+      });
+    }
+
+    //#################################################
+    // Overwrite all contact point indices
+    //#################################################
+    window.OverWriteAllFunc = async function() {
+      const outElem = document.getElementById('plotRowBtn');
+      outElem.innerText = 'Starting to visualize ...\n';
+
+      const outElemCurve = document.getElementById('IndividualCurve_output');
+      outElemCurve.innerText = 'Creating the graph ...\n';
+
+      const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
+      rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
+
+      const autocut = document.getElementById("autocut").value || 0.5;
+      const resample_times = document.getElementById("resample_times").value || 5;
+      const nups = document.getElementById("nups").value || 10;
+      const ndowns = document.getElementById("ndowns").value || 5;
+      const nups_dip = document.getElementById("nups_dip").value || 30;
+      const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
+      const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
+      const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const mul1 = document.getElementById("mul1").value || 1;
+      const mul2 = document.getElementById("mul2").value || 10;
+      
+      // Custom contact point
+      const custom_contact_point = document.getElementById("custom_contact_point").value || 0;
+
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        library(afmToolkit)
+        library(changepoint)
+
+        contactPointFunction_value_custom <- "custom"
+
+        webr::canvas(width = 700, height = 300)
+
+        for(i in 1:nrow(summarized_data)){
+          
+              # skip bad curves
+              if(summarized_data$prediction[i] == "bad curves" | summarized_data$prediction[i] == "none"){
+                  next 
+              } else { # for curves without peak plot only contact point
+                  curve_data = new_data2 |> filter(curve_index == i)
+                  raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+                  smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+                  p = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+                  c = data.frame(x = ${custom_contact_point}, y = 0)
+                  d = dip_points(smooth_cut_data, raw_data, p, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
+
+                  metrics = compute_metrics(curve_data, p, d, c)
+
+                  summarized_data[summarized_data$curve_index == i, "CP_index"] = c[1]
+                  
+                  summarized_data[summarized_data$curve_index == i, "z1"] = metrics$z[1]
+                  summarized_data[summarized_data$curve_index == i, "f1"] = metrics$f[1]
+                  
+                  if(length(metrics$z) > 1){
+                      summarized_data[summarized_data$curve_index == i, "z2"] = metrics$z[2]
+                      summarized_data[summarized_data$curve_index == i, "f2"] = metrics$f[2]
+                  }
+              }
+          }
+
+      
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+            curve_data = new_data2 |> filter(full_path == selected_curve)
+            raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+            smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+            # for bad curves
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                geom_line(linewidth = 1) + 
+                theme_classic() + 
+                ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
+        } else {
+          curve_data = new_data2 |> filter(full_path == selected_curve)
+          raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+          smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+          peak_point = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+
+          points = rbind(
+              peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
+              contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
+              data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (custom)")
+          )
+                    
+          # for curves without peak plot only contact point
+          if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
+                
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''))
+
+          # for other curves plot contact, peak, and dip
+          } else { 
+
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+                  geom_line(linewidth = 0.5) + 
+                  theme_classic() + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
+                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      sep = ''),
+                      subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
+                                        "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
+          }
+        }
+
+        print(p3)
+        dev.off()
+      `);
+
+      outElem.innerText = 'Done! Do you want to plot the next curve?\n'; 
+
+      const msgs = await webR.flush();
+      msgs.forEach(msg => {
+        if (msg.type === 'canvas' && msg.data.event === 'canvasImage') {
+          const canvas = document.getElementById('IndividualCurve_Plot');
+          canvas.getContext('2d').drawImage(msg.data.image, 0, 0, canvas.width, canvas.height);
+        }
+      });
+
+      // Initialize R variables
+      await webR.evalRVoid(`
+        if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
+          points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
+        } else {
+          points_output <- points[c(1:2, 6), ]
+        }
+
+        # contact point:
+        current_contact_point_index <- points_output$x[3]
+        contact_index <- c(
+          paste0("Current contact point index: ", current_contact_point_index, " (custom)")
+        )
+      `);
+
+      outElemCurve.innerText = "DONE! ";
+
+      // Get the vector from R
+      const contact_index_results = await webR.evalR("contact_index");
+      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+
+      contact_index_results_strings.forEach(str => {
+        outElemCurve.innerHTML +=  str + " ";
+      });
+    }
+
+
+    // Function to download the data
+    document.getElementById('download-data3').addEventListener('click', async () => {
+      try {
+        // Convert the R data.frame to CSV string
+        const csvText = await webR.evalR(`
+          paste(capture.output(write.csv(summarized_data, row.names = FALSE)), collapse = "\n")
+        `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
+
+        // Create a Blob and a temporary download link
+        const blob = new Blob([csvText], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'classification_results_metrics.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving CSV: " + err);
+      }
+    });
+
+document.getElementById("OverWriteAllBtn").addEventListener("click", function () {
+  const confirmed = confirm(
+    "⚠ WARNING ⚠\n\n" +
+    "This will overwrite ALL contact point indices and their corresponding metrics.\n\n" +
+    "Do you want to continue?"
+  );
+
+  if (confirmed) {
+    OverWriteAllFunc();
+  }
+});
+
+</script>
+
+<!-- ################################################### -->
+<!-- ################################################### -->
+<!-- ############# Load the data ####################### -->
+<!-- ################################################### -->
+<!-- ################################################### -->
+
+<hr style="border: 1px solid #0c3574; width: 100%;">
+
+<h2 id="Chapter1" style="color:#0c3574; margin-top:15px;">1 Upload data</h2>
+
+<hr style="border: 0.1px solid #0c3574; width: 100%;">
+
+We start the analysis by uploading data. They must be stored in a ZIP file with specified structure.
+
+<!-- 1.1 Load the data -->
+<h3 id="loadzip" style="color:#0c3574; margin-top:15px;">1.1 Upload and extract the ZIP</h3>
+
+Start by uploading your ZIP file containing the datasets. The structure of the ZIP file must be similar to the picture below. <br><br>
+
+<!-- Remote image -->
+<img src="https://raw.githubusercontent.com/GAMU-MILAN/webR-app/refs/heads/main/spm.png" alt="folder_structure" width="600">
+<p>
+  The ZIP can contain multiple folders; for example, typical folders are <code>Before</code> and <code>After</code>.
+  Once uploaded, the files will be extracted into the webR virtual filesystem and the main folders will be listed below.
+</p>
+<p><b>Select a ZIP file with your data:</b></p>
+<input type="file" id="zipFile" accept=".zip" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-bottom:10px;"/><br>
+<button id="uploadZipBtn" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px;">Upload and extract</button>
+<pre class="simple">
+  <code id="zipStatus">No ZIP data uploaded yet.</code>
+</pre>
+
+<!-- Place lists of files -->
+<div id="main-folders" style="margin-top:0px; padding:1px; border:0px solid #84c4f9; border-radius:2px; background-color:#e3f2fd;">
+  <p style="color:#0c3574; font-weight: bold; font-size: small;">First-level folders:</p>
+  <pre id="main-folders-text">Loading...</pre>
+</div><br>
+
+<!-- ################################################### -->
+<!-- ## Upload files into R and convert them to one data -->
+<!-- ################################################### -->
+
+
+<h3 id="loadIntoR" style="color:#0c3574; margin-top:15px;">1.2 Upload files into R</h3>
+
+<!--
+Now, we upload the data into webR. To do this, first select type of files inside uploaded ZIP (only <code>spm</code> and <code>jpk</code> are supported). <br>
+-->
+
+<!-- Let user choose the type explicitly -->
+ <!--
+<label for="fileType"><em>File type inside zip:</em></label>
+<select id="fileType">
+  <option value="none">select file type</option>
+  <option value="jpk">.jpk</option>
+  <option value="spm">.spm</option>
+</select> 
+
+<pre id="fileType_output" class="simple"></pre>
+-->
+
+<!-- Upload the data into R -->
+Now, by clicking on the button below, all the files will be uploaded into R memory. To check that everything is OK, the numbers of curves within each first-level subfolder will be displayed.<br>
+<button onclick="UploadIntowebR()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Upload into R
+</button>
+
+<pre><code id="UploadIntowebR_output">No files uploaded yet.</code></pre>
+
+<!-- ################################################### -->
+<!-- ## Define parameters -->
+<!-- ################################################### -->
+
+<h3 id="params_def_section" style="color:#0c3574; margin-top:15px;">1.3 Define parameters</h3>
+
+Before we start to analyze the uploaded data, we define some useful parameters:
+<div class="parameters-section">
+  <ul>
+    <li>
+      How much of the curve is cut off:
+      <input type="number" id="autocut" value="0.5" min="0" max="1" step="0.01"> <em>(default value 0.5)</em>
+    </li>
+
+    <li>
+      If the data are sparsely sampled, resample the data
+      <input type="number" id="resample_times" value="5" min="1">  <em>(default value 5)</em>
+      times.
+    </li>
+
+    <li>
+      How many points in a row must increase or decrease to label a point as a <b>peak</b>:
+      <ul>
+        <li>
+          number of increasing points:
+          <input type="number" id="nups" value="10" min="1"> <em>(default value 10)</em>
+        </li>
+        <li>
+          number of decreasing points:
+          <input type="number" id="ndowns" value="5" min="1"> <em>(default value 5)</em>
+        </li>
+        <li>
+          minimum peak height proportion:
+          <input type="number" id="min_peak_height_proportion" value="0.05" min="0.000001" step="0.01"> <em>(default value 0.05)</em>
+        </li>
+      </ul>
+    </li>
+
+    <li>
+      How many points in a row must increase or decrease to label a point as a <b>dip</b>:
+      <ul>
+        <li>
+          number of increasing points:
+          <input type="number" id="nups_dip" value="30" min="1"> <em>(default value 30)</em>
+        </li>
+        <li>
+          number of decreasing points:
+          <input type="number" id="ndowns_dip" value="10" min="1"> <em>(default value 10)</em>
+        </li>
+      </ul>
+    </li>
+
+    <li>
+      Smoother span value:
+      <input type="number" id="lowess_deflection_f" value="0.0001" min="0.000001" step="0.01">
+      <em>(default value 0.0001; proportion of nearby points affecting the smooth; larger values increase smoothness)</em>
+    </li>
+
+    <li>
+      When searching for the contact point using the <b>AFMToolkit</b> package:
+      <ul>
+        <li>
+          first multiplier for the noise threshold:
+          <input type="number" id="mul1" value="1" min="0.001" step="0.1"> <em>(default value 1)</em>
+        </li>
+        <li>
+          second multiplier for the significance threshold:
+          <input type="number" id="mul2" value="10" min="0.001" step="0.1"> <em>(default value 10)</em>
+        </li>
+      </ul>
+    </li>
+    <li>
+      Attempt localizing peak point window before peak search? <select id="correction">
+        <option value="TRUE">TRUE</option>
+        <option value="FALSE">FALSE</option>
+      </select> 
+    </li>
+  </ul>
+</div>
+
+
+   <button onclick="summarizeTheData()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">Summarize the data</button>
+   <pre><code id="DataSumm_output">Waiting for initialization ...</code></pre>
+
+<!-- ################################################### -->
+<!-- ################################################### -->
+<!-- ############# Data classification ################# -->
+<!-- ################################################### -->
+<!-- ################################################### -->
+
+<hr style="border: 1px solid #0c3574; width: 100%;">
+
+<h2 id="Chapter2" style="color:#0c3574; margin-top:15px;">2 Data classification</h2>
+
+<hr style="border: 0.1px solid #0c3574; width: 100%;">
+
+Now, we classify the curves.
+
+<!-- ################################################### -->
+<!-- ## Classification of the curves -->
+<!-- ################################################### -->
+
+<h3 id="class_calc" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.1 Classification of the curves</h3>
+
+If you want to classify your curves, press the <code>Classify</code> button below. <br>
+
+<button onclick="ClassifyCurves()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Classify
+</button>
+
+<pre><code id="ClassifyCurves_output">Waiting for initialization ...</code></pre>
+
+<!-- ################################################### -->
+<!-- ## Plotting results -->
+<!-- ################################################### -->
+
+<h3 id="class_plot" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.2 Plot the results</h3>
+We can visualize the classification results by a plot of prediction distribution per method.<br>
+
+<!--
+<button id="plot1-button" disabled="true" style="background-color:#cf4a4a; color:black; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Prediction distribution per method
+</button><br>-->
+
+<!-- <div id="plot1-container" width="1000" height="400"></div> -->
+
+<!--
+<canvas id="plot1-container" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>-->
+
+<button id="AgreementPlotBtn" onclick="AgreementPlotFunction()" disabled="true" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Plot the prediction distribution per method
+</button>
+<br>
+<canvas id="AgreementPlot" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>
+
+<br><br>
+<button id="downloadAgreementPlot" disabled="true" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the plot above (PNG)
+</button> or 
+<button id="download_data_AgreementPlot" disabled="true" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the image data (CSV)
+</button>.
+
+<!-- ################################################### -->
+<!-- ## Export results -->
+<!-- ################################################### -->
+
+<h3 id="class_export" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.3 Export the results</h3>
+We can also export the classification results into a csv file.<br>
+
+<button id="download-data" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the classification results (CSV)
+</button>
+
+<!-- ################################################### -->
+<!-- ################################################### -->
+<!-- ############# Inspect the results ################# -->
+<!-- ################################################### -->
+<!-- ################################################### -->
+
+<hr style="border: 1px solid #0c3574; width: 100%;">
+
+<h2 id="Chapter3" style="color:#0c3574; margin-top:15px;">3 Curve metrics</h2>
+
+<hr style="border: 0.1px solid #0c3574; width: 100%;">
+
+In the last chapter, we use the classification results from the selected model (see below) and compute curve metrics. Next, we plot the curve according to the users choice.
+
+<!-- ################################################### -->
+<!-- ## Select the final model      -->
+<!-- ################################################### -->
+
+<h3 id="final_model_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.1 Select the final model</h3>
+
+According to the previous results, you can choose the model to be used for metrics calculation. <br>
+
+<!-- Let user choose the type explicitly -->
+
+<div class="parameters-section">
+  <label for="finalmodel"><em>Select the model that you want to use for metrics calculation:</em></label>
+<select id="finalmodel">
+  <option value="none">no model selected yet</option>
+  <option value="brute force">brute force</option>
+  <option value="classification tree">tree</option>
+  <option value="random forest">forest</option>
+</select> 
+</div>
+
+<pre id="finalmodel_output" class="simple"></pre>
+
+Moreover, you can choose which method should be used for contact point searching. <br>
+
+<!-- Let user choose the type explicitly -->
+<div class="parameters-section">
+  <label for="contactPointFunction"><em>Select a method:</em></label>
+<select id="contactPointFunction">
+  <option value="none">select method for contact point</option>
+  <option value="AFMToolkit">AFMToolkit</option>
+  <option value="CUT">CUT</option>
+  <option value="INTERSECT">INTERSECT</option>
+</select> 
+</div>
+
+<pre id="contactPointFunction_output" class="simple"></pre>
+
+<!-- ################################################### -->
+<!-- ## Compute metrics   -->
+<!-- ################################################### -->
+
+<h3 id="compute_metrics_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.2 Compute curve metrics</h3>
+
+Based on the selected model from <a href="#final_model_section">the previous section</a>, we compute some curve metrics (press the <code>Compute metrics</code> button below). <br>
+
+<button onclick="ComputeMetrics()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Compute metrics
+</button>
+
+<pre><code id="ComputeMetrics_output">Waiting for initialization ...</code></pre>
+
+We can also export the classification results along with the computed metrics.<br>
+
+<button id="download-data2" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the classification results with computed metrics (CSV)
+</button>
+
+<!-- ################################################### -->
+<!-- ## Plot individual curve   -->
+<!-- ################################################### -->
+
+<h3 id="plot_curve_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.3 Plot individual curve</h3>
+
+Finally, we plot an individual curve with annotated peaks, contact points and dip points. <br><br>
+
+<b>Select a curve to be plotted</b><br>
+From the dropdown menu, select a curve to visualize.
+<div class="parameters-section">
+<select id="rowSelect" disabled>
+  <option value="">-- Load data first --</option>
+</select>
+</div>
+
+<pre id="rowSelect_output" class="simple"></pre>
+
+<button id="plotRowBtn" disabled onclick="plotIndividualCurve()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Plot the selected curve
+</button>
+
+<br>
+<canvas id="IndividualCurve_Plot" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>
+
+<br>
+<button id="download_IndividualCurve_Plot" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the plot above (PNG)
+</button> or 
+<button id="download_data_IndividualCurve_Plot" disabled="true" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  Download the image data (CSV)
+</button>.<br>
+
+<pre><code id="IndividualCurve_output">Waiting for initialization ...</code></pre>
+
+<div class="parameters-section">
+New contact point index: <input type="number" id="custom_contact_point" value="0" min="0" step="1" disabled>.
+</div>
+In order to overwrite <span style="color: #cf4a4a;">the current contact point index</span> and corresponding metrics, press
+ <button id="OverWriteBtn" disabled onclick="OverWriteFunc()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  overwrite
+</button>.<br>
+In order to overwrite 
+<span class="danger-text">all contact point indices</span> 
+and corresponding metrics, press
+
+<button id="OverWriteAllBtn" disabled
+        style="background-color:#1565c0; color:white; padding:7px; border:none; border-radius:5px; margin-top:4px;">
+  overwrite ALL
+</button>.<br>
+
+<hr style="border: 0.2px solid #bbdefb; width: 100%;">
+
+Finally, you can download the classification results with corrected metrics: <button id="download-data3" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
+  download (CSV)
+</button>.
+
+</body>
+</html>
