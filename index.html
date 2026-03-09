@@ -182,9 +182,9 @@
 
 <!-- Header of the HTML document -->
 <h1><b>MILAN</b>: Cell curves classification</h1>
-<h2>Some super subtitle</h2>
-<p><b>Authors, Team</b></p>
-<p>December 19, 2025</p>
+<h2>Machine Learning-Driven Analysis of AFM Force–Distance Curves for Cell Membrane Integrity Assessment  </h2>
+<p><b>Markéta Barać-Makarová, Tomáš Pompa, Zdeněk Farka, Jan Koláček, Ondřej Pokora, Jan Slovák, Monika Pávková-Goldbergová, Jan Přibyl, Radka Obořilová</b></p>
+<p>March 09, 2026</p>
 <!-- Row with current state of the webR -->
 <div>
     <pre><code id="webR-state">Loading webR, please wait...</code></pre>
@@ -448,21 +448,26 @@ brute_force = function(newdata){
 tree = function(newdata) {
     predictions = c()
     for(i in 1:nrow(newdata)){
+        ## first branching
+        # left
         if(newdata$number_of_peaks[i] < 1) {
-            if(newdata$deflection_variance_half[i] >= 0.58){
+            if(newdata$deflection_variance_half[i] >= 0.003){
                 predictions[i] = "bad curves"
             } else {
                 predictions[i] = "none"
             }
+        ## first branching
+        # right
         } else {
+            ## second branching
+            # left
             if(newdata$number_of_peaks[i] >= 2){
-                if(newdata$deflection_variance_half[i] >= 0.2){
+                ## third branching
+                if(newdata$deflection_variance_half[i] >= 0.0031){
                     predictions[i] = "bad curves"
                 } else {
                     predictions[i] = "double"
                 }
-            } else if(newdata$shakiness[i] >= 0.21){
-                predictions[i] = "double"
             } else {
                 predictions[i] = "one"
             }
@@ -475,33 +480,50 @@ tree = function(newdata) {
 forest = function(newdata) {
     predictions = c()
     for(i in 1:nrow(newdata)){
+        ## first branching
+        # left
         if(newdata$number_of_peaks[i] < 0.5) {
-            if(newdata$deflection_variance_half[i] < 0.608543416951698){
-                if(newdata$shakiness[i] < 0.62573993026997){
-                    predictions[i] = "none"
-                } else {
-                    predictions[i] = "double"
-                }
-            } else {
-                if(newdata$shakiness[i] < 0.0917451246672308){
-                    if(newdata$shakiness[i] < 0.0606477994002165){
-                        predictions[i] = "bad curves"
-                    } else {
+            ## second branching
+            # left
+            if(newdata$deflection_variance_half[i] < 0.003002555407458014){
+                ## third branching
+                # left
+                if(newdata$deflection_variance_half[i] < 5.61939716072136e-06){
+                    ## fourth branching
+                    if(newdata$deflection_iqr[i] < 0.0195030765555757){
                         predictions[i] = "none"
+                    } else {
+                        predictions[i] = "double"
                     }
+                ## third branching
+                # right
+                } else {
+                    predictions[i] = "none"
+                }
+            ## second branching
+            # right
+            } else {
+                if(newdata$shakiness[i] < 0.011218548088038){
+                    predictions[i] = "none"
                 } else {
                     predictions[i] = "bad curves"
                 }
             }
+        ## first branching
+        # right
         } else {
-            if(newdata$shakiness[i] < 0.188986228716363){
+            ## second branching
+            # left
+            if(newdata$shakiness[i] < 0.0194973829387502){
                 if(newdata$number_of_peaks[i] < 1.5){
                     predictions[i] = "one"
                 } else {
                     predictions[i] = "double"
                 }
-            } else{
-                if(newdata$deflection_variance_half[i] < 0.19805673925551){
+            ## second branching
+            # right
+            } else {
+                if(newdata$deflection_variance_half[i] < 0.00202029770369589){
                     predictions[i] = "double"
                 } else {
                     predictions[i] = "bad curves"
@@ -2474,4 +2496,5 @@ Finally, you can download the classification results with corrected metrics: <bu
 </button>.
 
 </body>
+
 </html>
