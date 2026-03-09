@@ -1064,6 +1064,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       new_summarized_data = new_data2 |>
         group_by(curve_index) |>
+        mutate(deflection.nm = (deflection.nm - min(deflection.nm)) / (max(deflection.nm) - min(deflection.nm))) |> # normalise
         summarise(
           deflection_variance_half = var(deflection.nm[1:round(0.5 * length(deflection.nm))]),
           deflection_iqr = IQR(deflection.nm),
@@ -1446,7 +1447,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
               smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
-              p = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+              p = peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
               if (contactPointFunction_value == "AFMToolkit") {
                 c = contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2})
               } else if (contactPointFunction_value == "CUT") {
@@ -1454,7 +1455,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               } else {
                 c = contact_point2(curve_data$lowess_deflection, p, autocut = ${autocut})
               }
-              d = dip_points(smooth_cut_data, raw_data, p, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
+              d = dip_points(smooth_cut_data, raw_data, p, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
 
               metrics = compute_metrics(curve_data, p, d, c)
               
@@ -1588,7 +1589,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     //       # for curves without peak plot only contact point
     //       if(summarized_data$prediction[i] == "none") { 
                 
-    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
     //               geom_line(linewidth = 0.5) + 
     //               theme_classic() + 
     //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
@@ -1601,7 +1602,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     //       # for other curves plot contact, peak, and dip
     //       } else { 
 
-    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
     //               geom_line(linewidth = 0.5) + 
     //               theme_classic() + 
     //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
@@ -1672,19 +1673,19 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
             # for bad curves
-            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1) + 
                 theme_classic() + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
         } else {
           curve_data = new_data2 |> filter(full_path == selected_curve)
-          raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+          raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nN)
           smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
-          peak_point = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+          peak_point = peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
 
           points = rbind(
-              peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
-              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
               contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
@@ -1694,24 +1695,24 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
-              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points[3:5, ], aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
           # for other curves plot contact, peak, and dip
           } else { 
 
               # colors_point <- c("tomato", "deepskyblue", "forestgreen", ifelse())
-              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
                       subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
                                         "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
@@ -1860,7 +1861,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
             # for bad curves
-            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1) + 
                 theme_classic() + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
@@ -1902,23 +1903,23 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
-              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
           # for other curves plot contact, peak, and dip
           } else { 
 
-              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
                       subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
                                         "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
@@ -2013,9 +2014,9 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
                   raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
                   smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
-                  p = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+                  p = peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
                   c = data.frame(x = ${custom_contact_point}, y = 0)
-                  d = dip_points(smooth_cut_data, raw_data, p, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
+                  d = dip_points(smooth_cut_data, raw_data, p, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip}))
 
                   metrics = compute_metrics(curve_data, p, d, c)
 
@@ -2038,7 +2039,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
             # for bad curves
-            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+            p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1) + 
                 theme_classic() + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
@@ -2046,11 +2047,11 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           curve_data = new_data2 |> filter(full_path == selected_curve)
           raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
           smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
-          peak_point = peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+          peak_point = peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
 
           points = rbind(
-              peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
-              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
               contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
@@ -2060,23 +2061,23 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
-              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
           # for other curves plot contact, peak, and dip
           } else { 
 
-              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nm)) +
+              p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 0.5) + 
                   theme_classic() + 
                   geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-                      n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
+                      n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
                       subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
                                         "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
@@ -2520,4 +2521,5 @@ Finally, you can download the classification results with corrected metrics: <bu
 </body>
 
 </html>
+
 
