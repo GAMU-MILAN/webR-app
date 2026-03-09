@@ -1004,7 +1004,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   document.getElementById("lowess_deflection_f").addEventListener("change", function () {
     const value = Number(this.value);
 
-    if (!Number.isInteger(value) || value <= 0) {
+    if (value <= 0) {
       alert("Lowess deflection f parameter must be greater than 0.");
       this.value = 0.0001; // default value
     }
@@ -1014,7 +1014,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   document.getElementById("lowess_deflection_delta").addEventListener("change", function () {
     const value = Number(this.value);
 
-    if (!Number.isInteger(value) || value <= 0) {
+    if (value <= 0) {
       alert("Lowess deflection delta parameter must be greater than 0.");
       this.value = 5; // default value
     }
@@ -1024,7 +1024,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   document.getElementById("mul1").addEventListener("change", function () {
     const value = Number(this.value);
 
-    if (!Number.isInteger(value) || value <= 0) {
+    if (value <= 0) {
       alert("mul1 parameter must be greater than 0.");
       this.value = 1; // default value
     }
@@ -1034,7 +1034,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   document.getElementById("mul2").addEventListener("change", function () {
     const value = Number(this.value);
 
-    if (!Number.isInteger(value) || value <= 0) {
+    if (value <= 0) {
       alert("mul2 parameter must be greater than 0.");
       this.value = 10; // default value
     }
@@ -2521,5 +2521,6 @@ Finally, you can download the classification results with corrected metrics: <bu
 </body>
 
 </html>
+
 
 
