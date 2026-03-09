@@ -742,10 +742,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         return(list(z = NA, f = NA))
     } else {
         separation = curve_data$separation
-        deflection = curve_data$deflection.nm
-        f = separation[peak_points$x] - separation[dip_points$x]
-        z = deflection[dip_points$x] - deflection[contact_point$x]
-        return(list(z = z, f = f))
+        deflection = curve_data$deflection.nN
+        F_R = abs(deflection[peak_points$x] - deflection[contact_point$x])
+        z_AC = abs(separation[dip_points$x] - separation[contact_point$x])
+        return(list(z = z_AC, f = F_R))
     }
 }
   
@@ -1010,6 +1010,16 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     }
   });
 
+  // lowess_deflection_delta
+  document.getElementById("lowess_deflection_delta").addEventListener("change", function () {
+    const value = Number(this.value);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      alert("Lowess deflection delta parameter must be greater than 0.");
+      this.value = 5; // default value
+    }
+  });
+
   // mul1
   document.getElementById("mul1").addEventListener("change", function () {
     const value = Number(this.value);
@@ -1043,13 +1053,14 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
     const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
     const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
     const mul1 = document.getElementById("mul1").value || 1;
     const mul2 = document.getElementById("mul2").value || 10;
 
   await webR.evalRVoid(`
       new_data2 = new_data |>
         group_by(curve_index) |>
-        mutate(lowess_deflection = lowess(index, deflection.nm, f = ${lowess_deflection_f})$y) 
+        mutate(lowess_deflection = lowess(index, deflection.nm, f = ${lowess_deflection_f}, delta = ${lowess_deflection_delta})$y) 
 
       new_summarized_data = new_data2 |>
         group_by(curve_index) |>
@@ -1406,6 +1417,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
     const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
     const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
     const mul1 = document.getElementById("mul1").value || 1;
     const mul2 = document.getElementById("mul2").value || 10;
 
@@ -1545,6 +1557,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     //   const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
     //   const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
     //   const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+    //   const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
     //   const mul1 = document.getElementById("mul1").value || 1;
     //   const mul2 = document.getElementById("mul2").value || 10;
 
@@ -1642,6 +1655,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
       const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
       const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
 
@@ -1825,6 +1839,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
       const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
       const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
       
@@ -1971,6 +1986,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
       const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
       const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
+      const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
       
@@ -2271,6 +2287,12 @@ Before we start to analyze the uploaded data, we define some useful parameters:
       <em>(default value 0.0001; proportion of nearby points affecting the smooth; larger values increase smoothness)</em>
     </li>
 
+     <li>
+      Distance-based interpolation threshold:
+      <input type="number" id="lowess_deflection_delta" value="5" min="1" step="1">
+      <em>(default value 5; acts as a <em>skip distance</em> - increasing it reduces the number of local regressions performed via <code>lowess()</code> function, replacing them with faster linear interpolation)</em>
+    </li>
+
     <li>
       When searching for the contact point using the <b>AFMToolkit</b> package:
       <ul>
@@ -2498,3 +2520,4 @@ Finally, you can download the classification results with corrected metrics: <bu
 </body>
 
 </html>
+
