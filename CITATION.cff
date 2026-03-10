@@ -11,6 +11,14 @@ authors:
     given-names: "Markéta"
     email: marketa.makarova@mail.muni.cz
     orcid: "https://orcid.org/0009-0005-9313-4386"
+  - family-names: "Koláček"
+    given-names: "Jan"
+    email: kolacek@math.muni.cz
+    orcid: "https://orcid.org/0000-0002-0834-0072"
+  - family-names: "Pokora"
+    given-names: "Ondřej"
+    email: pokora@math.muni.cz
+    orcid: "https://orcid.org/0000-0001-5327-5882"
 version: 0.4.1
 date-released: 2026-03-10
 repository-code: "https://github.com/GAMU-MILAN/webR-app"
