@@ -25,7 +25,7 @@ Upload a ZIP file containing curve files in the *spm* format or your own data.
 The app is hosted via GitHub Pages, visit:
 
 ```
-https://github.com/GAMU-MILAN/webR-app/
+https://gamu-milan.github.io/webR-app/
 ```
 
 ## Notes
