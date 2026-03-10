@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "GAMU-MILAN: Analysis of AFM Force-Distance Curves"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Pompa"
+    given-names: "Tomáš"
+    email: pompa@math.muni.cz
+    orcid: "https://orcid.org/0009-0004-9770-6321"
+  - family-names: "Barać-Makarová"
+    given-names: "Markéta"
+    email: marketa.makarova@mail.muni.cz
+    orcid: "https://orcid.org/0009-0005-9313-4386"
+version: 0.4.1
+date-released: 2026-03-10
+repository-code: "https://github.com/GAMU-MILAN/webR-app"
+url: "https://gamu-milan.github.io/webR-app/"
