@@ -33,3 +33,18 @@ https://gamu-milan.github.io/webR-app/
 * Uses **webR** with `ggplot2` and `dplyr`.
 * All computations are performed in your browser; no server required.
 
+### Citation and Code Availability
+
+If you use this code, please cite the associated paper:
+
+> To be updated upon publication.
+
+The archived version of this specific repository can be found on Zenodo:
+
+> To be updated later.
+
+### License
+
+This project is licensed under the **MIT License**—see the LICENSE file for details.
+
+
