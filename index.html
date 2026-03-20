@@ -378,7 +378,7 @@ readSPM_new <- function(filename){
     repeat {
       line <- sub('.', '', readLines(con, n = 1), useBytes = TRUE)
       if (grepl('^[*]', line, useBytes = TRUE)) {
-        section <- sub('(.Ciao |.)(.*) list', '\\2', line, useBytes = TRUE)
+        section <- sub('(.Ciao |.)(.*) list', '\\\\2', line, useBytes = TRUE)
         if (section %in% params$section) {n <- n + 1} else {n <- 1}
         if (section == "File end") {break}
       } 
@@ -437,7 +437,7 @@ readSPM_new <- function(filename){
     select(value) |> as.double()
   
   txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 1)
-  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\\\(")[[1]][2], "V/LSB")[[1]][1])
   
   txt <- params |> filter(grepl("@Sens. Deflsens", key, ignore.case = TRUE))
   nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
@@ -471,7 +471,7 @@ readSPM_new <- function(filename){
     select(value) |> as.double()
   
   txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 2)
-  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\\\(")[[1]][2], "V/LSB")[[1]][1])
   
   txt <- params |> filter(section == "scan", grepl("@Sens. ZsensSens", key, ignore.case = TRUE))
   nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
@@ -502,7 +502,7 @@ readSPM_new <- function(filename){
   #   select(value) |> as.double()
   # 
   # txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 3)
-  # V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  # V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\\\(")[[1]][2], "V/LSB")[[1]][1])
   # 
   # txt <- params |> filter(grepl("@Sens. Deflsens", key, ignore.case = TRUE))
   # nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
