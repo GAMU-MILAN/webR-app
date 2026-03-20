@@ -361,6 +361,188 @@ readSPM <- function(filename){
   return(df.final)
 }
 
+readSPM_new <- function(filename){
+  require("tidyr")
+  require("dplyr")
+  require("ggplot2")
+  options(dplyr.print_max = 1e9)
+  
+  # read parameters
+  {
+    params <- data.frame(
+      section = character(), 
+      n = integer(), 
+      text = character()
+    )
+    con <- file(filename, "rb")
+    repeat {
+      line <- sub('.', '', readLines(con, n = 1), useBytes = TRUE)
+      if (grepl('^[*]', line, useBytes = TRUE)) {
+        section <- sub('(.Ciao |.)(.*) list', '\\2', line, useBytes = TRUE)
+        if (section %in% params$section) {n <- n + 1} else {n <- 1}
+        if (section == "File end") {break}
+      } 
+      else {
+        params <- params |> add_row(section = section, n = n, text = line)
+      }
+    }
+    close(con)
+  }
+  
+  params <- params |>
+    separate_wider_regex(
+      cols = "text", 
+      patterns = c(key = ".*", ": ", value = ".*"), 
+      too_few = "align_start"
+    ) |> 
+    mutate(
+      section = factor(section)
+    )
+  
+  # read data
+  bytes1 <- params |> filter(grepl("Bytes/pixel", key, ignore.case = TRUE)) |> 
+    filter(n == 1) |> select(value) |> as.double()
+  
+  bytes2 <- params |> filter(grepl("Bytes/pixel", key, ignore.case = TRUE)) |> 
+    filter(n == 2) |> select(value) |> as.double()
+  
+  int2 <- readBin(filename, what = "integer", size = bytes1, n = ceiling(file.size(filename) / bytes1), endian = "little")
+  
+  if (bytes2 != bytes1){
+    int4 <- readBin(filename, what = "integer", size = bytes2, n = ceiling(file.size(filename) / bytes2), endian = "little")
+    }else{int4 <- int2}
+  
+  block1.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 1) |> select(value) |> as.double()/bytes1 + 1
+  block1.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 1) |> select(value) |> as.double()/bytes1
+  block1.end <- block1.start + block1.length - 1
+  
+  block2.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 2) |> select(value) |> as.double()/bytes2 + 1
+  block2.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+    filter(section == "force image", n == 2) |> select(value) |> as.double()/bytes2
+  block2.end <- block2.start + block2.length - 1
+  
+  # block3.start <- params |> filter(grepl("data offset", key, ignore.case = TRUE)) |> 
+  #   filter(section == "force image", n == 3) |> select(value) |> as.double()/2 + 1
+  # block3.length <- params |> filter(grepl("data length", key, ignore.case = TRUE)) |> 
+  #   filter(section == "force image", n == 3) |> select(value) |> as.double()/2
+  # block3.end <- block3.start + block3.length - 1
+  
+  
+  # 1. blok
+  
+  Spring.constant <- params |> filter(grepl("spring", key, ignore.case = TRUE), n == 1) |> 
+    select(value) |> as.double()
+  
+  txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 1)
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  
+  txt <- params |> filter(grepl("@Sens. Deflsens", key, ignore.case = TRUE))
+  nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
+  
+  txt <- params |> filter(section == "force image", grepl("Samps", key, ignore.case = TRUE), n == 1)
+  n.x <- as.numeric(strsplit(txt$value, " ")[[1]][2])
+  n.y <- as.numeric(strsplit(txt$value, " ")[[1]][1])
+  n <- block1.length * bytes1 / 8  # n jsou snad stejna pro vsechny bloky
+  
+  raw.block <- int2[block1.start:block1.end] |> matrix(nrow = 2*n, byrow = TRUE)
+  
+  X <- raw.block[1:n, 1]
+  Y <- raw.block[(n + 1):(2*n), 1]
+  blok1 <- cbind(X, Y)
+  
+  X.V <- X * V.LSB
+  Y.V <- Y * V.LSB
+  blok1.V <- cbind(X.V, Y.V)
+  
+  X.nm <- X.V * nm.V
+  Y.nm <- Y.V * nm.V
+  blok1.nm <- cbind(X.nm, Y.nm)
+  
+  X.nN <- X.nm * Spring.constant
+  Y.nN <- Y.nm * Spring.constant
+  blok1.nN <- cbind(X.nN, Y.nN)
+  
+  # 2. blok
+  
+  Spring.constant <- params |> filter(grepl("spring", key, ignore.case = TRUE), n == 2) |> 
+    select(value) |> as.double()
+  
+  txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 2)
+  V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  
+  txt <- params |> filter(section == "scan", grepl("@Sens. ZsensSens", key, ignore.case = TRUE))
+  nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
+  
+  raw.block <- int4[block2.start:block2.end] |> matrix(nrow = 2*n, byrow = TRUE)
+  
+  # X <- raw.block[, 1]
+  # Y <- raw.block[, 2]
+  X <- raw.block[1:n, 1]
+  Y <- raw.block[(n + 1):(2*n), 1]
+  blok2 <- cbind(X, Y)
+  
+  X.V <- X * V.LSB
+  Y.V <- Y * V.LSB
+  blok2.V <- cbind(X.V, Y.V)
+  
+  X.nm <- X.V * nm.V
+  Y.nm <- Y.V * nm.V
+  blok2.nm <- cbind(X.nm, Y.nm)
+  
+  X.nN <- X.nm * Spring.constant
+  Y.nN <- Y.nm * Spring.constant
+  blok2.nN <- cbind(X.nN, Y.nN)
+  
+  # # 3. blok - stejny jako 1. blok
+  # 
+  # Spring.constant <- params |> filter(grepl("spring", key, ignore.case = TRUE), n == 3) |> 
+  #   select(value) |> as.double()
+  # 
+  # txt <- params |> filter(grepl("@4:Z scale", key, ignore.case = TRUE), n == 3)
+  # V.LSB <- as.numeric(strsplit(strsplit(txt$value, "\\(")[[1]][2], "V/LSB")[[1]][1])
+  # 
+  # txt <- params |> filter(grepl("@Sens. Deflsens", key, ignore.case = TRUE))
+  # nm.V <- as.numeric(strsplit(strsplit(txt$value, "V")[[1]][2], "nm/")[[1]][1])
+  # 
+  # raw.block <- int2[block3.start:block3.end] |> matrix(nrow = 2*n, byrow = TRUE)
+  # 
+  # X <- raw.block[1:n, 1]
+  # Y <- raw.block[(n+1):(2*n), 1]
+  # blok3 <- cbind(X, Y)
+  # 
+  # X.V <- X * V.LSB
+  # Y.V <- Y * V.LSB
+  # blok3.V <- cbind(X.V, Y.V)
+  # 
+  # X.nm <- X.V * nm.V
+  # Y.nm <- Y.V * nm.V
+  # blok3.nm <- cbind(X.nm, Y.nm)
+  # 
+  # X.nN <- X.nm * Spring.constant
+  # Y.nN <- Y.nm * Spring.constant
+  # blok3.nN <- cbind(X.nN, Y.nN)
+  
+  ### separation
+  
+  ind.x <- 1:n.x
+  ind.y <- 1:n.y
+  height <- c(-rev(blok2.nm[ind.x, 1]), -blok2.nm[ind.y, 2])
+  deflection.nm <- c(rev(blok1.nm[ind.x, 1]), blok1.nm[ind.y, 2])
+  separation <- c(rev(blok1.nm[ind.x, 1] - blok2.nm[ind.x, 1]), blok1.nm[ind.y, 2] - blok2.nm[ind.y, 2])
+  contact.point <- separation[n.x]
+  if (n.x < n) {contact.point <- 0}
+  deflection.nN <- c(rev(blok1.nN[ind.x, 1]), blok1.nN[ind.y, 2])
+  
+  df.final <- data.frame(height = height, deflection.nm = deflection.nm,
+                         separation = separation - contact.point, 
+                         deflection.nN = deflection.nN,
+                         segment = factor(rep(c("Approach", "Retract"), times = c(n.x, n.y))))
+  
+  return(df.final)
+}
 
 # curve
 # autocut = 0.7
@@ -888,7 +1070,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           // Load and process each curve in R
           await webR.evalRVoid(`
             curve_file_path <- "${curve_file_path}"
-            curve <- readSPM(curve_file_path)
+            curve <- readSPM_new(curve_file_path)
             curve <- curve |>
               mutate(full_path = gsub('/myzip//', '', curve_file_path), curve_index = ${curve_index}) |>
               filter(segment == "Approach")
