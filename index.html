@@ -1418,7 +1418,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       library(dplyr)
       library(tidyr)
 
-      webr::canvas(width = 700, height = 300)
+      webr::canvas(width = 2100, height = 1200, pointsize = 35)
 
       # Prepare data for plotting
       forplot = new_summarized_data |>
@@ -1436,7 +1436,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         group_by(folder, method, prediction) |>
         summarize(count = n(), .groups = "drop") |>
         group_by(folder, method) |>
-        mutate(pct = count / sum(count) * 100)
+        mutate(pct = count / sum(count) * 100) |>
+        mutate(method = gsub("_prediction", "", method))
 
       # Create ggplot
       p1 <- ggplot(forplot, aes(x = method, y = pct, fill = prediction)) +
@@ -1448,7 +1449,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           y = "Percentage",
           fill = "Prediction"
         ) +
-        theme_minimal()
+        theme_minimal(base_size = 35)
 
       print(p1)
       dev.off()
@@ -1489,7 +1490,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       try {
         // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
-          paste(capture.output(write.csv(forplot, row.names = FALSE)), collapse = "\n")
+          paste(capture.output(write.table(forplot, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
         // Create a Blob and a temporary download link
@@ -1516,7 +1517,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
                      forrest_prediction = forest_predictions,
                      brute_predictions = brute_force_predictions)
 
-          paste(capture.output(write.csv(results, row.names = FALSE)), collapse = "\n")
+          paste(capture.output(write.table(results, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
         // Create a Blob and a temporary download link
@@ -1622,8 +1623,24 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       for(i in 1:nrow(summarized_data)){
           
           # skip bad curves
-          if(summarized_data$prediction[i] == "bad curves" | summarized_data$prediction[i] == "none"){
+          if(summarized_data$prediction[i] == "bad curves"){
               next 
+          } else if (summarized_data$prediction[i] == "none") {
+              curve_data = new_data2 |> filter(curve_index == i)
+              raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
+              smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
+
+              p = peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
+
+              if (contactPointFunction_value == "AFMToolkit") {
+                c = contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2})
+              } else if (contactPointFunction_value == "CUT") {
+                c = contact_point(curve_data$lowess_deflection, p, autocut = ${autocut})
+              } else {
+                c = contact_point2(curve_data$lowess_deflection, p, autocut = ${autocut})
+              }
+
+              summarized_data[summarized_data$curve_index == i, "CP_index"] = c[1]
           } else { # for curves without peak plot only contact point
               curve_data = new_data2 |> filter(curve_index == i)
               raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
@@ -1680,7 +1697,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       try {
         // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
-          paste(capture.output(write.csv(summarized_data, row.names = FALSE)), collapse = "\n")
+          paste(capture.output(write.table(summarized_data, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
         // Create a Blob and a temporary download link
@@ -1765,16 +1782,16 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     //           peak_points(smooth_cut_data, raw_data, correction = T, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
     //           dip_points(smooth_cut_data, raw_data, peak_point, correction = T, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
     //           contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
-    //           contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)")
+    //           contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)")
     //       )
           
     //       # for curves without peak plot only contact point
     //       if(summarized_data$prediction[i] == "none") { 
                 
     //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-    //               geom_line(linewidth = 0.5) + 
-    //               theme_classic() + 
-    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+    //               geom_line(linewidth = 1.5) + 
+    //               theme_classic(base_size = 35) + 
+    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
     //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
     //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
     //                   sep = ''),
@@ -1785,9 +1802,9 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     //       } else { 
 
     //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-    //               geom_line(linewidth = 0.5) + 
-    //               theme_classic() + 
-    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+    //               geom_line(linewidth = 1.5) + 
+    //               theme_classic(base_size = 35) + 
+    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
     //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
     //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
     //                   sep = ''),
@@ -1847,7 +1864,17 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         library(afmToolkit)
         library(changepoint)
 
-        webr::canvas(width = 700, height = 300)
+        webr::canvas(width = 2100, height = 900, pointsize = 35)
+
+        # define colors
+        colors <- c(
+          "contact (current)"     = "#0072B2",  # Blue
+          "contact (AFMToolkit)"  = "#009E73",  # Teal-green
+          "contact (INTERSECT)"   = "#56B4E9",  # Sky blue
+          "contact (CUT)"         = "#7A5195",  # Muted purple
+          "dip"                   = "#E69F00",  # Amber
+          "peak"                  = "#D55E00"   # Vermilion
+        )
       
         if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
             curve_data = new_data2 |> filter(full_path == selected_curve)
@@ -1856,8 +1883,9 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
             # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                geom_line(linewidth = 1) + 
-                theme_classic() + 
+                geom_line(linewidth = 1.5) + 
+                scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
+                theme_classic(base_size = 35) + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
         } else {
           curve_data = new_data2 |> filter(full_path == selected_curve)
@@ -1870,7 +1898,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
-              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)"),
               data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (current)")
           )
           
@@ -1878,9 +1906,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points[3:5, ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points[1:6, ], aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
@@ -1890,9 +1919,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
               # colors_point <- c("tomato", "deepskyblue", "forestgreen", ifelse())
               p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
@@ -1935,7 +1965,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         # contact point:
         current_contact_point_index <- points_output$x[3]
         contact_index <- c(
-          paste0("Current contact point index: ", current_contact_point_index, " (", contactPointFunction_value_custom, ")")
+          paste0("Current contact point index: ", current_contact_point_index)
         )
       `);
 
@@ -1984,7 +2014,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           curve_data_to_download <- curve_data
           curve_data_to_download$important_x_points <- NA
           curve_data_to_download$important_x_points[points$x] <- points$point
-          paste(capture.output(write.csv(curve_data_to_download, row.names = FALSE)), collapse = "\n")
+          paste(capture.output(write.table(curve_data_to_download, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
         // Create a Blob and a temporary download link
@@ -2035,7 +2065,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         library(afmToolkit)
         library(changepoint)
 
-        webr::canvas(width = 700, height = 300)
+        webr::canvas(width = 2100, height = 900, pointsize = 35)
       
         if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
             curve_data = new_data2 |> filter(full_path == selected_curve)
@@ -2044,8 +2074,9 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
             # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                geom_line(linewidth = 1) + 
-                theme_classic() + 
+                geom_line(linewidth = 1.5) + 
+                scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
+                theme_classic(base_size = 35) + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
         } else {
           curve_data = new_data2 |> filter(full_path == selected_curve)
@@ -2058,14 +2089,14 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
-              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)")
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)")
           )
           
 
           ## Add custom contact point
           points <- rbind(points, points[3, ])
           points[6, 1] <- ${custom_contact_point}
-          points[6, 3] <- "contact (custom)"
+          points[6, 3] <- "contact (current)"
 
           p <- points[1, 1:2]
           d <- points[2, 1:2]
@@ -2086,9 +2117,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
@@ -2097,9 +2129,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           } else { 
 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
@@ -2184,13 +2217,15 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
         contactPointFunction_value_custom <- "custom"
 
-        webr::canvas(width = 700, height = 300)
+        webr::canvas(width = 2100, height = 900, pointsize = 35)
 
         for(i in 1:nrow(summarized_data)){
           
               # skip bad curves
-              if(summarized_data$prediction[i] == "bad curves" | summarized_data$prediction[i] == "none"){
+              if(summarized_data$prediction[i] == "bad curves"){
                   next 
+              } else if (summarized_data$prediction[i] == "none") {
+                  summarized_data[summarized_data$curve_index == i, "CP_index"] = ${custom_contact_point}
               } else { # for curves without peak plot only contact point
                   curve_data = new_data2 |> filter(curve_index == i)
                   raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
@@ -2222,8 +2257,9 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
             # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                geom_line(linewidth = 1) + 
-                theme_classic() + 
+                geom_line(linewidth = 1.5) + 
+                scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
+                theme_classic(base_size = 35) + 
                 ggtitle(paste('Curve ', selected_curve, ' | BAD CURVE', sep = ''))
         } else {
           curve_data = new_data2 |> filter(full_path == selected_curve)
@@ -2236,17 +2272,18 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
-              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFM)"),
-              data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (custom)")
+              contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)"),
+              data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (current)")
           )
                     
           # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points[-c(1:2), ], aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
@@ -2255,9 +2292,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           } else { 
 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-                  geom_line(linewidth = 0.5) + 
-                  theme_classic() + 
-                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 0.5) +
+                  geom_line(linewidth = 1.5) + 
+                  theme_classic(base_size = 35) + 
+                  geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
+                  scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
                   ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''),
@@ -2312,7 +2350,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       try {
         // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
-          paste(capture.output(write.csv(summarized_data, row.names = FALSE)), collapse = "\n")
+          paste(capture.output(write.table(summarized_data, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
         // Create a Blob and a temporary download link
@@ -2551,7 +2589,7 @@ We can visualize the classification results by a plot of prediction distribution
   Plot the prediction distribution per method
 </button>
 <br>
-<canvas id="AgreementPlot" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>
+<canvas id="AgreementPlot" width="2100" height="1200" style="border:1px solid #84c4f9; border-radius:5px; width: 700px; height: 400px;"></canvas>
 
 <br><br>
 <button id="downloadAgreementPlot" disabled="true" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
@@ -2666,7 +2704,7 @@ From the dropdown menu, select a curve to visualize.
 </button>
 
 <br>
-<canvas id="IndividualCurve_Plot" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>
+<canvas id="IndividualCurve_Plot" width="2100" height="900" style="border:1px solid #84c4f9; border-radius:5px; width: 700px; height: 300px;"></canvas>
 
 <br>
 <button id="download_IndividualCurve_Plot" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
