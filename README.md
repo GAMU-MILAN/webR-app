@@ -1,4 +1,4 @@
-# Machine Learning-Driven Analysis of AFM Force–Distance Curves for Cell Membrane Integrity Assessment
+# MILAN: Machine Learning-Driven Analysis of AFM F-D Curves
 
 This **interactive webR-based application** lets you run `R` code directly in your browser to perform pre-defined statistical operations and specialized F-D curve analysis. Because everything runs entirely client-side, no server or local `R` installation is required.
 
