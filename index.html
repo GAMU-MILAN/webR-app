@@ -2,193 +2,301 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MILAN</title>
-    <style>
-    /* Background and fonts */
-    body {
-      font-family: "Georgia", serif;
-      background-color: #f5fbff; /* light blue */
-      color: #010408;            /* dark blue text */
-      margin: 0;
-      padding: 5px 20px 20px 250px; /* add left padding for sticky ToC */
+  <style>
+    /* CSS Variables for design consistency */
+    :root {
+      --primary-color: #1e40af;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #e2e8f0;
+      --accent-blue: #eff6ff;
+      --success-green: #16a34a;
+      --success-hover: #15803d;
+      --danger-red: #dc2626;
+      --danger-hover: #b91c1c;
+      --sidebar-width: 260px;
     }
 
-    /* Header styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Base Layout */
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+    }
+
+    /* Sticky Sidebar Layout */
+    .toc {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background-color: #1e293b;
+      color: #f8fafc;
+      padding: 24px 16px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    }
+
+    .toc h3 {
+      margin-top: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    .toc ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .toc li {
+      margin-bottom: 6px;
+    }
+
+    .toc a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 14px;
+      display: block;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .toc a:hover {
+      color: #ffffff;
+      background-color: #334155;
+    }
+
+    .toc ul ul {
+      padding-left: 12px;
+      margin-top: 4px;
+    }
+
+    .toc ul ul a {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    /* Main Container */
+    .main-container {
+      margin-left: var(--sidebar-width);
+      padding: 32px 40px;
+      width: calc(100% - var(--sidebar-width));
+      max-width: 1200px;
+    }
+
+    /* Headers */
+    .header-card {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: white;
+      padding: 28px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
     h1 {
-      color: #0c3574;            /* dark blue */
-      background-color: #bbdefb; /* medium blue */
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     h2 {
-      color: #0c3574; /* another shade of blue */
-      text-align: left;
+      color: var(--primary-color);
+      font-size: 20px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-top: 0;
     }
 
-    p {
-      font-size: 16px;
-      font-family: "Georgia", serif;
-      color: #040e1e;
-    }
-
-    /* Styling the webR state box */
-    #webR-state {
-      color: red;                /* make text red */
-      font-weight: bold;
-    }
-
-    pre {
-      background-color: #f5fbff; /* very light blue */
-      border: 1px solid #0c3574; /* medium blue border */
-      padding: 10px;
-      border-radius: 5px;
-    }
-
-    pre.simple {
-      background-color: #f0f9ff; /* very light blue */
-      border: 0px solid #f8f8f8; /* medium blue border */
-      padding: 2px;
-      border-radius: 2px;
-    }
-
-    /* Container margin */
-    div {
+    h3 {
+      color: #334155;
+      font-size: 17px;
       margin-top: 20px;
     }
 
-    /* Sticky Table of Contents */
-    .toc {
-      position: fixed;
-      top: 5px;
-      left: 15px;
-      width: 215px;
-      background-color: #bbdefb;
-      padding: 5px;
-      border-radius: 5px;
+    .authors {
+      font-size: 14px;
+      color: #93c5fd;
+      margin: 8px 0 0 0;
+    }
+
+    .date-tag {
       font-size: 12px;
-      font-weight: bold;
+      color: #bfdbfe;
+      margin-top: 4px;
     }
-    .toc h3 {
-      margin-top: 1;
-      font-size: 16px;
-      color: #0c3574;
+
+    /* Cards Layout */
+    .section-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .toc ul {
-      list-style-type: none;
-      padding-left: 10px;
-      margin-bottom: 5px;
-      margin-top: 6px;
+
+    /* Output Console Logs */
+    pre {
+      background-color: #dbeafe;
+      color: #1e40af;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: 'Fira Code', Consolas, Monaco, monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 12px 0;
     }
-    .toc li {
-      margin-bottom: 10px;
-      margin-top: 10px;
+
+    pre.simple {
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border-color);
     }
-    .toc a {
-      color: black;
-      text-decoration: none;
+
+    /* UI Inputs & Controls */
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      border: none;
     }
-    .toc a:hover {
-      text-decoration: underline;
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
-    /* Container spacing */
-.parameters-section {
-  margin: 10px 0;
-  font-size: 16px;
-}
 
-/* First-level bullets */
-.parameters-section > ul > li {
-  margin-bottom: 10px;
-  line-height: 1.5;
-  color: black; /* dark academic blue */
-}
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
 
-/* Second-level bullets */
-.parameters-section ul ul li {
-  margin-bottom: 8px;
-  color: black;
-}
+    /* Custom Input Controls */
+    input[type="file"] {
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
 
-/* Bullet styling */
-.parameters-section ul {
-  list-style-position: inside;
-}
+    input[type="number"], select {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: #ffffff;
+      transition: border-color 0.2s ease;
+    }
 
-.parameters-section ul ul {
-  padding-left: 20px;
-  list-style-type: circle; /* nicer than dash */
-}
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    }
 
-/* Input styling for clean alignment */
-.parameters-section input[type="number"] {
-  width: 70px;
-  padding: 3px 5px;
-  border: 1px solid #84c4f9;
-  border-radius: 4px;
-  margin-left: 6px;
-}
+    /* Parameters Grid */
+    .parameters-section ul {
+      padding-left: 20px;
+    }
 
-.parameters-section select {
-  padding: 3px 5px;
-  border: 1px solid #84c4f9;
-  border-radius: 4px;
-  margin-left: 6px;
-  background-color: white; /* optional but often needed for consistent look */
-}
+    .parameters-section li {
+      margin-bottom: 12px;
+      color: #334155;
+    }
 
-.danger-text {
-  color: #cf4a4a;
-  font-weight: 700;
-}
+    .parameters-section em {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .danger-text {
+      color: var(--danger-red);
+      font-weight: 700;
+    }
+
+    /* Responsive Canvases */
+    canvas {
+      max-width: 100%;
+      height: auto !important;
+      border-radius: 8px;
+      background-color: #ffffff;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
-<!-- ################################################### -->
-<!-- ################################################### -->
-<!-- ############## Start of body of the document ###### -->
-<!-- ################################################### -->
-<!-- ################################################### -->
+
 <body>
-  <!-- Sticky Table of Contents -->
-<div class="toc">
-  <h3>Table of Contents</h3>
-  <ul>
-    <li><a href="#Chapter1">1. Upload data</a>
-      <ul>
-        <li><a href="#loadzip">1.1 Upload and extract the ZIP</a></li>
-        <li><a href="#loadIntoR">1.2 Upload files into R</a></li>
-        <li><a href="#params_def_section">1.3 Define parameters</a></li>
-      </ul>
-    </li>
-    <li><a href="#Chapter2">2. Data classification</a>
-      <ul>
-        <li><a href="#class_calc">2.1 Classification of the curves</a></li>
-        <li><a href="#class_plot">2.2 Plot the results</a></li>
-        <li><a href="#class_export">2.3 Export the results</a></li>
-      </ul>
-    </li>
-    <li><a href="#Chapter3">3. Curve metrics</a>
-      <ul>
-        <li><a href="#final_model_section">3.1 Select the final model</a></li>
-        <li><a href="#compute_metrics_section">3.2 Compute curve metrics</a></li>
-        <li><a href="#plot_curve_section">3.3 Plot individual curve</a></li>
-      </ul>
-    </li>
-  </ul>
-</div>
+  <!-- Sticky Table of Contents Sidebar -->
+  <div class="toc">
+    <h3>Navigation</h3>
+    <ul>
+      <li><a href="#Chapter1">1. ZIP File Batch Processing</a>
+        <ul>
+          <li><a href="#loadzip">1.1 Upload and extract the ZIP</a></li>
+          <li><a href="#loadIntoR">1.2 Upload files into R</a></li>
+          <li><a href="#params_def_section">1.3 Configure parameters</a></li>
+          <li><a href="#data_summary">1.4 Summarize the data</a></li>
+        </ul>
+      </li>
+      <li><a href="#Chapter2">2. Classification</a>
+        <ul>
+          <li><a href="#class_calc">2.1 Classify the curves</a></li>
+          <li><a href="#class_plot">2.2 Prediction distribution</a></li>
+          <li><a href="#class_export">2.3 Export the results</a></li>
+        </ul>
+      </li>
+      <li><a href="#Chapter3">3. Curve metrics</a>
+        <ul>
+          <li><a href="#final_model_section">3.1 Select model</a></li>
+          <li><a href="#compute_metrics_section">3.2 Calculate curve metrics</a></li>
+          <li><a href="#plot_curve_section">3.3 Fine-tuning</a></li>
+          <li><a href="#data_export">3.4 Data export</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
 
+  <div class="main-container">
+    <!-- Header Card -->
+    <div class="header-card">
+      <h1>MILAN: AFM Force–Distance Curve Classification</h1>
+      <div style="font-size: 16px; opacity: 0.9;">Machine Learning-Driven Analysis of AFM Force–Distance Curves for Cell Membrane Integrity Assessment</div>
+      <p class="authors"><b>Zdeněk Farka, Tomáš Pompa, Markéta Barać-Makarová, Jan Koláček, Ondřej Pokora, Jan Slovák, Monika Pávková-Goldbergová, Jan Přibyl, Radka Obořilová</b></p>
+      <div class="date-tag">November 3, 2026</div>
+    </div>
 
-<!-- Header of the HTML document -->
-<h1><b>MILAN</b>: Cell curves classification</h1>
-<h2>Machine Learning-Driven Analysis of AFM Force–Distance Curves for Cell Membrane Integrity Assessment  </h2>
-<p><b>Markéta Barać-Makarová, Tomáš Pompa, Zdeněk Farka, Jan Koláček, Ondřej Pokora, Jan Slovák, Monika Pávková-Goldbergová, Jan Přibyl, Radka Obořilová</b></p>
-<p>October 27, 2026</p>
-<!-- Row with current state of the webR -->
-<div>
-    <pre><code id="webR-state">Loading webR, please wait...</code></pre>
-</div>
+    <!-- webR Console Status -->
+    <div class="section-card" style="padding: 12px 20px;">
+      <pre style="margin: 0;"><code id="webR-state">Loading webR, please wait...</code></pre>
+    </div>
 
 <!-- script with webR code -->
 <script type="module">
@@ -940,45 +1048,13 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   // ###################################################
 
   //#############################################################
-  // Select whether the user uploads JPK or SPM
-  //#############################################################
-
-  //const fileType = document.getElementById("fileType");
-  //const fileType_output = document.getElementById("fileType_output");
-
-  // On change, define variable in R
-  // fileType.addEventListener("change", async () => {
-  //   const chosenType = fileType.value; // "jpk" or "spm"
-  //   await webR.evalRVoid(`
-  //   file_type <- "${chosenType}"
-  //   file_type <- ifelse(file_type == "select file type", "none", file_type)
-  //   `);
-
-  //   // Check from R
-  //   const fileType_result = await (await webR.evalR("file_type")).toArray();
-  //   fileType_output.textContent = `Selected file type = ${fileType_result}`;
-  // });
-
-  // Initialize with default
-  // (async () => {
-  //   await webR.evalRVoid(`file_type <- "${fileType.value}"`);
-  //   const fileType_result = await (await webR.evalR("file_type")).toArray();
-  //   fileType_output.textContent = `Selected file type = ${fileType_result}`;
-  // })();
-
-  //#############################################################
   // Load the zip file
   //#############################################################
 
-  // # Define variables
-  // ## Variable where the zip file will be stored
   const zipInput = document.getElementById('zipFile');
-  // ## Variable for button that uploads the zip
   const uploadZipBtn = document.getElementById('uploadZipBtn');
-  // ## Variable for displaying current status
   const zipStatus = document.getElementById('zipStatus');
 
-  // What happens if the user press the button
   uploadZipBtn.addEventListener('click', async () => {
     try {
       if (!zipInput.files || zipInput.files.length === 0) {
@@ -995,20 +1071,17 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const zipRoot = "/myzip"; // dedicated folder for this zip
       try { webR.FS.mkdir(zipRoot); } catch(e){}  // create if not exists
 
-
-      // Iterate over files in the zip and write them into webR filesystem
       for (const [path, zipEntry] of Object.entries(zip.files)) {
-        if (zipEntry.dir) continue; // skip directories
+        if (zipEntry.dir) continue;
         const content = await zipEntry.async("uint8array");
-        const destPath = zipRoot + "/" + path;  // keep folder structure
-        // Ensure folder exists in MEMFS
+        const destPath = zipRoot + "/" + path;
         const dirs = destPath.split("/").slice(1, -1);
         let currentPath = "";
         for (const d of dirs) {
           currentPath += "/" + d;
           try {
             webR.FS.mkdir(currentPath);
-          } catch (e) {} // ignore if already exists
+          } catch (e) {}
         }
         webR.FS.writeFile(destPath, content);
       }
@@ -1020,10 +1093,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       let firstLevelFolders = await webR.evalR(`subfolders`);
       console.log("Files available in main folder:", await firstLevelFolders.toArray());
 
-      // Convert to arrays
       let firstLevelFoldersArray = await firstLevelFolders.toArray();
 
-      // Display in HTML
       document.getElementById("main-folders-text").textContent = firstLevelFoldersArray.length 
         ? firstLevelFoldersArray.join("\n") 
         : "No folders found in main folder.";
@@ -1042,17 +1113,14 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const outElem = document.getElementById('UploadIntowebR_output');
     outElem.innerText = 'Uploading all files into R ...\n';
 
-    // Initialize R variables
     await webR.evalRVoid(`new_data <- data.frame(); curve_index <- 1`);
 
-    // List all folders in /myzip/
     const folders_result = await webR.evalR("list.dirs('/myzip/', recursive = TRUE)");
-    const folders = await folders_result.toArray(); // <-- ensures iterable array
+    const folders = await folders_result.toArray();
 
     let curve_index = 1;
 
     for (const folder of folders) {
-      // List files in this folder and filter by type
       const files_result = await webR.evalR(`
         all_files <- list.files("${folder}", recursive = FALSE)
         all_types <- sub(".*\\\\.", "", all_files)
@@ -1060,14 +1128,12 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         curve_files <- all_files[all_types == file_type]
         curve_files
       `);
-      const curve_files = await files_result.toArray(); // <-- ensures iterable array
+      const curve_files = await files_result.toArray();
 
-      // Only process folders with curve files
       if (curve_files.length >= 1) {
         for (const curve_file of curve_files) {
           const curve_file_path = `${folder}/${curve_file}`;
 
-          // Load and process each curve in R
           await webR.evalRVoid(`
             curve_file_path <- "${curve_file_path}"
             curve <- readSPM_new(curve_file_path)
@@ -1079,7 +1145,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             new_data <- bind_rows(new_data, curve)
           `);
 
-          // Update progress in HTML
           const curve_file_path_shortened1 = await webR.evalR("gsub('/myzip//', '', curve_file_path)");
           const curve_file_path_shortened2 = await curve_file_path_shortened1.toArray();
           outElem.innerText = `Loaded ${curve_index} curves (current curve: ${curve_file_path_shortened2})`;
@@ -1088,7 +1153,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       }
     }
 
-    // Show final count
     outElem.innerText = `✅ Files loaded successfully: ${curve_index - 1} curves in total.`;
   };
 
@@ -1098,127 +1162,114 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
   const correction = document.getElementById("correction");
 
-  // On change, define variable in R
   correction.addEventListener("change", async () => {
-    const chosencorrection = correction.value; // TRUE or FALSE
+    const chosencorrection = correction.value;
     await webR.evalRVoid(`
     correction <- "${chosencorrection}"
     `);
   });
 
-  // Initialize with default
   (async () => {
     await webR.evalRVoid(`correction <- "${correction.value}"`);
   })();
 
-  // autocut
   document.getElementById("autocut").addEventListener("change", function() {
       const value = parseFloat(this.value);
       if (!Number.isFinite(value) || value <= 0 || value >= 1) {
           alert("Autocut parameter should be a number between 0 and 1.");
-          this.value = 0.5;  // optional reset to default
+          this.value = 0.5;
       }
   });
 
-  // resample_times
   document.getElementById("resample_times").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (!Number.isInteger(value) || value <= 0) {
       alert("Resample times must be a whole number greater than 0.");
-      this.value = 5; // default value
+      this.value = 5;
     }
   });
 
-  // nups
   document.getElementById("nups").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (!Number.isInteger(value) || value <= 0) {
       alert("nups parameter must be a whole number greater than 0.");
-      this.value = 10; // default value
+      this.value = 10;
     }
   });
 
-  // ndowns
   document.getElementById("ndowns").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (!Number.isInteger(value) || value <= 0) {
       alert("ndowns parameter must be a whole number greater than 0.");
-      this.value = 5; // default value
+      this.value = 5;
     }
   });
 
-  // nups_dip
   document.getElementById("nups_dip").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (!Number.isInteger(value) || value <= 0) {
       alert("Dip nups parameter must be a whole number greater than 0.");
-      this.value = 30; // default value
+      this.value = 30;
     }
   });
 
-  // ndowns_dip
   document.getElementById("ndowns_dip").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (!Number.isInteger(value) || value <= 0) {
       alert("Dip ndowns parameter must be a whole number greater than 0.");
-      this.value = 10; // default value
+      this.value = 10;
     }
   });
 
-  // min_peak_height_proportion
   document.getElementById("min_peak_height_proportion").addEventListener("change", function() {
       const value = parseFloat(this.value);
       if (value <= 0 || value >= 1) {
           alert("Minimal peak height proportion should be a number between 0 and 1.");
-          this.value = 0.05;  // optional reset to default
+          this.value = 0.05;
       }
       if (value >= 0.3 && value < 1) {
           alert("Note that only very tall peaks will be detected.");
       }
   });
 
-  // lowess_deflection_f
   document.getElementById("lowess_deflection_f").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (value <= 0) {
       alert("Lowess deflection f parameter must be greater than 0.");
-      this.value = 0.0001; // default value
+      this.value = 0.0001;
     }
   });
 
-  // lowess_deflection_delta
   document.getElementById("lowess_deflection_delta").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (value <= 0) {
       alert("Lowess deflection delta parameter must be greater than 0.");
-      this.value = 5; // default value
+      this.value = 5;
     }
   });
 
-  // mul1
   document.getElementById("mul1").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (value <= 0) {
       alert("mul1 parameter must be greater than 0.");
-      this.value = 1; // default value
+      this.value = 1;
     }
   });
 
-  // mul2
   document.getElementById("mul2").addEventListener("change", function () {
     const value = Number(this.value);
 
     if (value <= 0) {
       alert("mul2 parameter must be greater than 0.");
-      this.value = 10; // default value
+      this.value = 10;
     }
   });
 
@@ -1263,18 +1314,15 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         select(- c(curve_index, full_path, folder))
     `)
 
-    // Show final message
     outElem.innerText = 'Calculating summary statistics: ✅ DONE.';
 
-    // Get the vector from R
     const folder_strings_result = await webR.evalR("number_of_curves_subfolders");
-    const folder_strings = await folder_strings_result.toArray(); // JS array of strings
+    const folder_strings = await folder_strings_result.toArray();
 
     folder_strings.forEach(str => {
       outElem.innerHTML += "<br>" + str;
     });
   }
-
 
   //#############################################################
   // Classify
@@ -1284,13 +1332,11 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const outElem = document.getElementById('ClassifyCurves_output');
     outElem.innerText = 'Starting to classify ...\n';
 
-    // Initialize R variables
     await webR.evalRVoid(`
       brute_force_predictions <- brute_force(new_model_data)
       tree_predictions <- tree(new_model_data)
       forest_predictions <- forest(new_model_data)
 
-      # Disagreement between algorithms:
       disagreement <- c(
         paste0("Tree vs Forest:          ", round(sum(tree_predictions == forest_predictions) / length(tree_predictions) * 100, 2), "%"),
         paste0("Brute force vs Forest:   ", round(sum(brute_force_predictions == forest_predictions) / length(tree_predictions) * 100, 2), "%"),
@@ -1300,9 +1346,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
     outElem.innerText = '✅ Classification: DONE\n';
 
-    // Get the vector from R
     const disagreement_results = await webR.evalR("disagreement");
-    const disagreement_strings = await disagreement_results.toArray(); // JS array of strings
+    const disagreement_strings = await disagreement_results.toArray();
 
     outElem.innerHTML += "<br><b>Agreement between classifiers:</b>";
 
@@ -1313,105 +1358,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     AgreementPlotBtn.removeAttribute("disabled");
   };
 
-  //#############################################################
-  // Plot the results
-  //#############################################################
-
-//   let container_plot1 = document.getElementById('plot1-container');
-//   let button_plot1 = document.getElementById('plot1-button');
-
-//   // Declare canvas variable in outer scope so it is accessible in the loop
-//   let canvas = null;
-//   currentCanvasId = 'plot1-container';
-
-
-//   // --- Plot button click handler ---
-//   button_plot1.onclick = () => {
-//     container_plot1.replaceChildren(); // Clear previous plots
-
-//     // Send R code to webR
-//     webR.evalRVoid(`
-//       library(ggplot2)
-//       library(dplyr)
-//       library(tidyr)
-
-//       webr::canvas(width = 700, height = 300)
-
-//       # Prepare data for plotting
-//       forplot = new_summarized_data |>
-//         mutate(
-//           tree_prediction   = tree_predictions,
-//           forest_prediction = forest_predictions,
-//           brute_prediction  = brute_force_predictions,
-//           folder = factor(folder)
-//         ) |>
-//         pivot_longer(
-//           cols = c(tree_prediction, forest_prediction, brute_prediction),
-//           names_to = "method",
-//           values_to = "prediction"
-//         ) |>
-//         group_by(folder, method, prediction) |>
-//         summarize(count = n(), .groups = "drop") |>
-//         group_by(folder, method) |>
-//         mutate(pct = count / sum(count) * 100)
-
-//       # Create ggplot
-//       p1 <- ggplot(forplot, aes(x = method, y = pct, fill = prediction)) +
-//         geom_col(position = "stack") +
-//         facet_wrap(~ folder) +
-//         labs(
-//           title = "Prediction distribution per method",
-//           x = "Method",
-//           y = "Percentage",
-//           fill = "Prediction"
-//         ) +
-//         theme_minimal()
-
-//       print(p1)
-//       dev.off()
-//     `);
-//   };
-
-//   (async () => {
-//   let canvas = null;
-
-//   for (;;) {
-//     const output = await webR.read();
-
-//     if (output.type === 'canvas') {
-//       if (output.data.event === 'canvasNewPage') {
-//         // Use the canvas specified by currentCanvasId
-//         if (currentCanvasId) {
-//           canvas = document.getElementById(currentCanvasId);
-//           if (canvas) {
-//             // Optional: clear previous content
-//             const ctx = canvas.getContext('2d');
-//             ctx.clearRect(0, 0, canvas.width, canvas.height);
-//           } else {
-//             console.warn("Canvas with id " + currentCanvasId + " not found in DOM.");
-//           }
-//         } else {
-//           console.warn("canvasNewPage received but currentCanvasId is null.");
-//           canvas = null;
-//         }
-
-//       } else if (output.data.event === 'canvasImage') {
-//         if (canvas) {
-//           canvas
-//             .getContext('2d')
-//             .drawImage(output.data.image, 0, 0, canvas.width, canvas.height);
-//         } else {
-//           console.warn("Received canvasImage but no canvas is set for drawing.");
-//         }
-//       }
-
-//     } else {
-//       // Other types of output: print to console if you like
-//       console.log(output);
-//     }
-//   }
-// })();
-
     window.AgreementPlotFunction = async function() {
       await webR.evalRVoid(`
           library(ggplot2)
@@ -1420,7 +1366,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       webr::canvas(width = 2100, height = 1200, pointsize = 35)
 
-      # Prepare data for plotting
       forplot = new_summarized_data |>
         mutate(
           tree_prediction   = tree_predictions,
@@ -1439,7 +1384,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         mutate(pct = count / sum(count) * 100) |>
         mutate(method = gsub("_prediction", "", method))
 
-      # Create ggplot
       p1 <- ggplot(forplot, aes(x = method, y = pct, fill = prediction)) +
         geom_col(position = "stack") +
         facet_wrap(~ folder) +
@@ -1468,12 +1412,11 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     }
 
     //#############################################################
-    // 1.6 Save the data
+    // Save the data
     //#############################################################
 
-    // Function to download canvas as image
     document.getElementById('downloadAgreementPlot').addEventListener('click', () => {
-      const canvas = document.getElementById('AgreementPlot'); // change if using different canvas
+      const canvas = document.getElementById('AgreementPlot');
       if (!canvas) {
         alert("Plot not found!");
         return;
@@ -1485,15 +1428,12 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       a.click();
     });
 
-    // Function to download the image data
     document.getElementById('download_data_AgreementPlot').addEventListener('click', async () => {
       try {
-        // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
           paste(capture.output(write.table(forplot, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
-        // Create a Blob and a temporary download link
         const blob = new Blob([csvText], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1507,10 +1447,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       }
     });
 
-    // Function to download the data
     document.getElementById('download-data').addEventListener('click', async () => {
       try {
-        // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
           results <- new_summarized_data |>
               mutate(tree_prediction = tree_predictions,
@@ -1520,7 +1458,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           paste(capture.output(write.table(results, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
-        // Create a Blob and a temporary download link
         const blob = new Blob([csvText], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1541,19 +1478,16 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   const finalmodel = document.getElementById("finalmodel");
   const finalmodel_output = document.getElementById("finalmodel_output");
 
-  // On change, define variable in R
   finalmodel.addEventListener("change", async () => {
-    const chosenFinalModel = finalmodel.value; // brute/tree/forest
+    const chosenFinalModel = finalmodel.value;
     await webR.evalRVoid(`
     final_model <- "${chosenFinalModel}"
     `);
 
-    // Check from R
     const finalmodel_result = await (await webR.evalR("final_model")).toArray();
     finalmodel_output.textContent = `Final model = ${finalmodel_result}`;
   });
 
-  // Initialize with default
   (async () => {
     await webR.evalRVoid(`final_model <- "${finalmodel.value}"`);
     const finalmodel_result = await (await webR.evalR("final_model")).toArray();
@@ -1567,7 +1501,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
   const contactPointFunction = document.getElementById("contactPointFunction");
   const contactPointFunction_output = document.getElementById("contactPointFunction_output");
 
-  // On change, define variable in R
   contactPointFunction.addEventListener("change", async () => {
     const contactPointFunction_value = contactPointFunction.value; 
     await webR.evalRVoid(`
@@ -1575,12 +1508,10 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     contactPointFunction_value <- ifelse(contactPointFunction_value == "select method for contact point", "none", contactPointFunction_value)
     `);
 
-    // Check from R
     const contactPointFunction_result = await (await webR.evalR("contactPointFunction_value")).toArray();
     contactPointFunction_output.textContent = `Selected method for contact point = ${contactPointFunction_result}`;
   });
 
-  // Initialize with default
   (async () => {
     await webR.evalRVoid(`contactPointFunction_value <- "${contactPointFunction.value}"`);
     const contactPointFunction_result = await (await webR.evalR("contactPointFunction_value")).toArray();
@@ -1605,7 +1536,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const mul1 = document.getElementById("mul1").value || 1;
     const mul2 = document.getElementById("mul2").value || 10;
 
-    // Initialize R variables
     await webR.evalRVoid(`
       library(afmToolkit)
       library(changepoint)
@@ -1622,7 +1552,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       for(i in 1:nrow(summarized_data)){
           
-          # skip bad curves
           if(summarized_data$prediction[i] == "bad curves"){
               next 
           } else if (summarized_data$prediction[i] == "none") {
@@ -1641,7 +1570,7 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               }
 
               summarized_data[summarized_data$curve_index == i, "CP_index"] = c[1]
-          } else { # for curves without peak plot only contact point
+          } else {
               curve_data = new_data2 |> filter(curve_index == i)
               raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
               smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
@@ -1673,12 +1602,11 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
     outElem.innerText = '✅ Metrics computed: DONE\n';
 
-    // After CSV is loaded
     const rowNames = await webR.evalR("unique(new_data2$full_path)");
     const rowNamesArray = await rowNames.toArray();
 
     const selectElem = document.getElementById("rowSelect");
-    selectElem.innerHTML = ""; // clear previous content
+    selectElem.innerHTML = "";
     rowNamesArray.forEach(name => {
       const option = document.createElement("option");
       option.value = name;
@@ -1686,21 +1614,17 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       selectElem.appendChild(option);
     });
 
-    // enable dropdown and button
     selectElem.disabled = false;
     document.getElementById("plotRowBtn").disabled = false;
 
   };
 
-  // Function to download the data
     document.getElementById('download-data2').addEventListener('click', async () => {
       try {
-        // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
           paste(capture.output(write.table(summarized_data, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
-        // Create a Blob and a temporary download link
         const blob = new Blob([csvText], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1721,119 +1645,22 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
     const rowSelect = document.getElementById("rowSelect");
     const rowSelect_output = document.getElementById("rowSelect_output");
 
-    // On change, define variable in R
     rowSelect.addEventListener("change", async () => {
-      const rowSelectType = rowSelect.value; // name of curve
+      const rowSelectType = rowSelect.value;
       await webR.evalRVoid(`
       selected_curve <- "${rowSelectType}"
       selected_curve_next <- "NO"
       `);
 
-      // Check from R
       const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
       rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
     });
 
-    // Initialize with default
     (async () => {
       await webR.evalRVoid(`selected_curve <- "${rowSelect.value}"`);
       const rowSelectType_result = await (await webR.evalR("selected_curve")).toArray();
       rowSelect_output.textContent = `Selected curve = ${rowSelectType_result}`;
     })();
-
-    // #################################################
-
-    // window.plotIndividualCurve = async function () {
-    //   const outElem = document.getElementById('plotRowBtn');
-    //   outElem.innerText = 'Starting to visualize ...\n';
-
-    //   currentCanvasId = 'IndividualCurve_Plot';
-
-    //   const autocut = document.getElementById("autocut").value || 0.5;
-    //   const resample_times = document.getElementById("resample_times").value || 5;
-    //   const nups = document.getElementById("nups").value || 10;
-    //   const ndowns = document.getElementById("ndowns").value || 5;
-    //   const nups_dip = document.getElementById("nups_dip").value || 30;
-    //   const ndowns_dip = document.getElementById("ndowns_dip").value || 10;
-    //   const min_peak_height_proportion = document.getElementById("min_peak_height_proportion").value || 0.05;
-    //   const lowess_deflection_f = document.getElementById("lowess_deflection_f").value || 0.0001;
-    //   const lowess_deflection_delta = document.getElementById("lowess_deflection_delta").value || 5;
-    //   const mul1 = document.getElementById("mul1").value || 1;
-    //   const mul2 = document.getElementById("mul2").value || 10;
-
-    //   // Initialize R variables
-    //   await webR.evalRVoid(`
-    //     library(afmToolkit)
-    //     library(changepoint)
-
-    //     webr::canvas(width = 700, height = 300)
-      
-    //     if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
-    //         p2 <- ggplot(data = data.frame(x = 0, y = 0, label = "Bad curve"), aes(x = x, y = y, label = label)) + 
-    //           geom_text(size = 20) + 
-    //           theme_void() 
-    //     } else {
-    //       curve_data = new_data2 |> filter(full_path == selected_curve)
-    //       raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
-    //       smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
-    //       peak_point = peak_points(smooth_cut_data, raw_data, correction = T, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns}))
-
-    //       points = rbind(
-    //           peak_points(smooth_cut_data, raw_data, correction = T, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
-    //           dip_points(smooth_cut_data, raw_data, peak_point, correction = T, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
-    //           contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
-    //           contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)")
-    //       )
-          
-    //       # for curves without peak plot only contact point
-    //       if(summarized_data$prediction[i] == "none") { 
-                
-    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-    //               geom_line(linewidth = 1.5) + 
-    //               theme_classic(base_size = 35) + 
-    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
-    //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-    //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
-    //                   sep = ''),
-    //                   subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
-    //                                     "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
-
-    //       # for other curves plot contact, peak, and dip
-    //       } else { 
-
-    //           p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
-    //               geom_line(linewidth = 1.5) + 
-    //               theme_classic(base_size = 35) + 
-    //               geom_vline(data = points, aes(xintercept = x, color = point), linewidth = 1) +
-    //               ggtitle(paste('Curve: ', selected_curve, ' | estimated peaks: ',
-    //                   n_peaks(smooth_cut_data, nups = 3, ndowns = 2), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
-    //                   sep = ''),
-    //                   subtitle = paste0("z = ", round(summarized_data$z1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$z2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$z2[summarized_data$full_path == selected_curve], 4), ")"), ""), 
-    //                                     "; f = ", round(summarized_data$f1[summarized_data$full_path == selected_curve], 4), ifelse(!is.na(summarized_data$f2[summarized_data$full_path == selected_curve]), paste0(" (", round(summarized_data$f2[summarized_data$full_path == selected_curve], 4), ")"), "")))
-    //       }
-    //     }
-
-    //     print(p2)
-    //     dev.off()
-    //   `);
-
-    //   outElem.innerText = 'Done. Do you want to plot another curve?\n'; 
-
-    // };
-
-    // // Function to download canvas as image
-    // document.getElementById('download_IndividualCurve_Plot').addEventListener('click', () => {
-    //   const canvas = document.getElementById('IndividualCurve_Plot'); // change if using different canvas
-    //   if (!canvas) {
-    //     alert("Plot not found!");
-    //     return;
-    //   }
-    //   const url = canvas.toDataURL("image/png");
-    //   const a = document.createElement('a');
-    //   a.href = url;         
-    //   a.download = `plot_curve.png`;
-    //   a.click();
-    // });
 
     window.plotIndividualCurve = async function() {
       const outElem = document.getElementById('plotRowBtn');
@@ -1859,14 +1686,12 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
 
-      // Initialize R variables
       await webR.evalRVoid(`
         library(afmToolkit)
         library(changepoint)
 
         webr::canvas(width = 2100, height = 900, pointsize = 35)
 
-        # define colors
         colors <- c(
           "contact (current)"     = "#0072B2",  # Blue
           "contact (AFMToolkit)"  = "#009E73",  # Teal-green
@@ -1881,7 +1706,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
-            # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1.5) + 
                 scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
@@ -1902,7 +1726,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (current)")
           )
           
-          # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
@@ -1914,10 +1737,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
-          # for other curves plot contact, peak, and dip
           } else { 
 
-              # colors_point <- c("tomato", "deepskyblue", "forestgreen", ifelse())
               p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                   geom_line(linewidth = 1.5) + 
                   theme_classic(base_size = 35) + 
@@ -1931,7 +1752,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           }
         }
 
-        # change the selected curve to the next one
         if (which(summarized_data$full_path == selected_curve) == nrow(summarized_data)) {
           selected_curve_next <- summarized_data$full_path[1]
         } else {
@@ -1952,7 +1772,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         }
       });
 
-      // Initialize R variables
       await webR.evalRVoid(`
         if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
           points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
@@ -1962,7 +1781,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           points_output <- rbind(points_output, c(summarized_data$CP_index[summarized_data$full_path == selected_curve], 0, "currentCP"))
         }
 
-        # contact point:
         current_contact_point_index <- points_output$x[3]
         contact_index <- c(
           paste0("Current contact point index: ", current_contact_point_index)
@@ -1971,15 +1789,13 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       outElemCurve.innerText = "DONE! ";
 
-      // Get the vector from R
       const contact_index_results = await webR.evalR("contact_index");
-      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+      const contact_index_results_strings = await contact_index_results.toArray();
 
       contact_index_results_strings.forEach(str => {
         outElemCurve.innerHTML +=  str + " ";
       });
 
-      // set the default value for custom change
       const current_contact_point_index = await webR.evalR("current_contact_point_index");
       const current_contact_point_index_JS = (await current_contact_point_index.toArray())[0];
 
@@ -1992,9 +1808,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       document.getElementById("custom_contact_point").disabled = false;
     }
 
-    // Function to download canvas as image
     document.getElementById('download_IndividualCurve_Plot').addEventListener('click', () => {
-      const canvas = document.getElementById('IndividualCurve_Plot'); // change if using different canvas
+      const canvas = document.getElementById('IndividualCurve_Plot');
       if (!canvas) {
         alert("Plot not found!");
         return;
@@ -2006,10 +1821,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       a.click();
     });
 
-    // Function to download the image data
     document.getElementById('download_data_IndividualCurve_Plot').addEventListener('click', async () => {
       try {
-        // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
           curve_data_to_download <- curve_data
           curve_data_to_download$important_x_points <- NA
@@ -2017,7 +1830,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           paste(capture.output(write.table(curve_data_to_download, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
-        // Create a Blob and a temporary download link
         const blob = new Blob([csvText], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2056,11 +1868,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
       
-      // Custom contact point
       const custom_contact_point = document.getElementById("custom_contact_point").value || 0;
 
-
-      // Initialize R variables
       await webR.evalRVoid(`
         library(afmToolkit)
         library(changepoint)
@@ -2072,7 +1881,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
-            # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1.5) + 
                 scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
@@ -2086,14 +1894,12 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
           points = rbind(
               peak_points(smooth_cut_data, raw_data, correction = correction, min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
-              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = correction, ndowns = round(${ndowns_dip}), nups = round(${ndowns_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
               contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)")
           )
           
-
-          ## Add custom contact point
           points <- rbind(points, points[3, ])
           points[6, 1] <- ${custom_contact_point}
           points[6, 3] <- "contact (current)"
@@ -2113,7 +1919,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
               summarized_data[summarized_data$full_path == selected_curve, "f2"] = metrics$f[2]
           }
           
-          # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
@@ -2125,7 +1930,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
-          # for other curves plot contact, peak, and dip
           } else { 
 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
@@ -2155,7 +1959,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         }
       });
 
-      // Initialize R variables
       await webR.evalRVoid(`
         if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
           points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
@@ -2163,7 +1966,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           points_output <- points[c(1:2, 6), ]
         }
 
-        # contact point:
         current_contact_point_index <- points_output$x[3]
         contact_index <- c(
           paste0("Current contact point index: ", current_contact_point_index, " (custom)")
@@ -2172,9 +1974,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       outElemCurve.innerText = "DONE! ";
 
-      // Get the vector from R
       const contact_index_results = await webR.evalR("contact_index");
-      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+      const contact_index_results_strings = await contact_index_results.toArray();
 
       contact_index_results_strings.forEach(str => {
         outElemCurve.innerHTML +=  str + " ";
@@ -2206,11 +2007,8 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
       const mul1 = document.getElementById("mul1").value || 1;
       const mul2 = document.getElementById("mul2").value || 10;
       
-      // Custom contact point
       const custom_contact_point = document.getElementById("custom_contact_point").value || 0;
 
-
-      // Initialize R variables
       await webR.evalRVoid(`
         library(afmToolkit)
         library(changepoint)
@@ -2221,12 +2019,11 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
         for(i in 1:nrow(summarized_data)){
           
-              # skip bad curves
               if(summarized_data$prediction[i] == "bad curves"){
                   next 
               } else if (summarized_data$prediction[i] == "none") {
                   summarized_data[summarized_data$curve_index == i, "CP_index"] = ${custom_contact_point}
-              } else { # for curves without peak plot only contact point
+              } else {
                   curve_data = new_data2 |> filter(curve_index == i)
                   raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
                   smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
@@ -2255,7 +2052,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
             raw_data = data.frame(x = curve_data$index, y = curve_data$deflection.nm)
             smooth_cut_data = resample(cut_curve(curve_data$lowess_deflection, autocut = ${autocut}), times = round(${resample_times}))
 
-            # for bad curves
             p2 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
                 geom_line(linewidth = 1.5) + 
                 scale_color_manual(values = colors, breaks = names(colors), limits = names(colors), drop = FALSE, guide = guide_legend(override.aes = list(linewidth = 3))) +
@@ -2269,14 +2065,13 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
           points = rbind(
               peak_points(smooth_cut_data, raw_data, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), min_peak_height_proportion = ${min_peak_height_proportion}, nups = round(${nups}), ndowns = round(${ndowns})) |> mutate(point = "peak"),
-              dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${nups_dip})) |> mutate(point = "dip"),
+              dip_points(smooth_cut_data, raw_data, peak_point, correction = ifelse(summarized_data$number_of_peaks[i] >= 2, FALSE, correction), ndowns = round(${ndowns_dip}), nups = round(${ndowns_dip})) |> mutate(point = "dip"),
               contact_point(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (CUT)"),
               contact_point2(curve_data$lowess_deflection, peak_point, autocut = ${autocut}) |> mutate(point = "contact (INTERSECT)"),
               contact_point_afmtoolkit(curve_data$height, curve_data$deflection.nN, curve_data$lowess_deflection, mul1 = ${mul1}, mul2 = ${mul2}) |> mutate(point = "contact (AFMToolkit)"),
               data.frame(x = summarized_data$CP_index[summarized_data$full_path == selected_curve], y = 0) |> mutate(point = "contact (current)")
           )
                     
-          # for curves without peak plot only contact point
           if(summarized_data$prediction[summarized_data$full_path == selected_curve] == "none") { 
                 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
@@ -2288,7 +2083,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
                       n_peaks(smooth_cut_data, nups = round(${nups}), ndowns = round(${ndowns}), min_peak_height_proportion = ${min_peak_height_proportion}), ' | prediction: ', summarized_data$prediction[summarized_data$full_path == selected_curve],
                       sep = ''))
 
-          # for other curves plot contact, peak, and dip
           } else { 
 
               p3 = ggplot(data = curve_data, mapping = aes(x = index, y = deflection.nN)) +
@@ -2318,7 +2112,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
         }
       });
 
-      // Initialize R variables
       await webR.evalRVoid(`
         if (summarized_data$prediction[summarized_data$full_path == selected_curve] == "bad curves") {
           points_output <- data.frame(x = rep(NA, 3), y = rep(NA, 3))
@@ -2326,7 +2119,6 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
           points_output <- points[c(1:2, 6), ]
         }
 
-        # contact point:
         current_contact_point_index <- points_output$x[3]
         contact_index <- c(
           paste0("Current contact point index: ", current_contact_point_index, " (custom)")
@@ -2335,25 +2127,20 @@ compute_metrics = function(curve_data, peak_points, dip_points, contact_point){
 
       outElemCurve.innerText = "DONE! ";
 
-      // Get the vector from R
       const contact_index_results = await webR.evalR("contact_index");
-      const contact_index_results_strings = await contact_index_results.toArray(); // JS array of strings
+      const contact_index_results_strings = await contact_index_results.toArray();
 
       contact_index_results_strings.forEach(str => {
         outElemCurve.innerHTML +=  str + " ";
       });
     }
 
-
-    // Function to download the data
     document.getElementById('download-data3').addEventListener('click', async () => {
       try {
-        // Convert the R data.frame to CSV string
         const csvText = await webR.evalR(`
           paste(capture.output(write.table(summarized_data, sep = ";", dec = ".", row.names = FALSE, col.names = TRUE)), collapse = "\n")
         `).then(obj => obj.toArray()).then(arr => arr.join("\n"));
 
-        // Create a Blob and a temporary download link
         const blob = new Blob([csvText], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2381,366 +2168,379 @@ document.getElementById("OverWriteAllBtn").addEventListener("click", function ()
 
 </script>
 
-<!-- ################################################### -->
-<!-- ################################################### -->
-<!-- ############# Load the data ####################### -->
-<!-- ################################################### -->
-<!-- ################################################### -->
+    <!-- SECTION 1 -->
+    <div class="section-card">
+      <h2 id="Chapter1">1. ZIP File Batch Processing</h2>
+      <p>
+        The analysis begins by loading raw Force–Distance (F-D) datasets into client-side R memory. In this chapter, you will extract your data archive, review the detected folder hierarchy, and configure signal processing parameters tailored to your experimental setup.
+      </p>
 
-<hr style="border: 1px solid #0c3574; width: 100%;">
+      <h3 id="loadzip">1.1 Upload and extract the ZIP</h3>
+      <p>
+        Upload a single <code>.zip</code> archive containing your experimental datasets. The ZIP archive can include subdirectories for different experimental conditions (e.g., <code>Control</code>, <code>Treated</code>, or <code>Before</code>/<code>After</code>). The tool recursively scans all folders for raw <code>.spm</code> force curve files and loads them into webR’s virtual filesystem.
+      </p>
 
-<h2 id="Chapter1" style="color:#0c3574; margin-top:15px;">1 Upload data</h2>
+      <img src="https://raw.githubusercontent.com/GAMU-MILAN/webR-app/refs/heads/main/spm.png" alt="folder_structure" width="600" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+      
+      <p style="font-size: 16px; color: var(--text-muted);">
+        Select your <code>.zip</code> archive and click <b>Upload and extract</b> to load the files into webR’s virtual memory filesystem.
+      </p>
 
-<hr style="border: 0.1px solid #0c3574; width: 100%;">
+      <div style="margin: 16px 0;">
+        <p style="margin-bottom: 6px;"><em>Select a ZIP file with your data:</em></p>
+        <input type="file" id="zipFile" accept=".zip" />
+        <button id="uploadZipBtn" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px; margin-left: 8px;">Upload and extract</button>
+      </div>
 
-We start the analysis by uploading data. They must be stored in a ZIP file with specified structure.
+      <pre class="simple"><code id="zipStatus">No ZIP data uploaded yet.</code></pre>
 
-<!-- 1.1 Load the data -->
-<h3 id="loadzip" style="color:#0c3574; margin-top:15px;">1.1 Upload and extract the ZIP</h3>
+      <div id="main-folders" style="margin-top: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--accent-blue);">
+        <p style="color: var(--primary-color); font-weight: bold; font-size: 14px; margin: 0 0 4px 0;">First-level folders:</p>
+        <pre id="main-folders-text" style="margin: 0; padding: 4px; background: transparent; color: inherit;">Loading...</pre>
+      </div>
 
-Start by uploading your ZIP file containing the datasets. The structure of the ZIP file must be similar to the picture below. <br><br>
+      <h3 id="loadIntoR">1.2 Upload files into R</h3>
+      <p>
+        Click the button below to parse and load all <code>.spm</code> files into R memory. As curves are processed, the count will update below in real time.
+      </p>
+      
+      <button onclick="UploadIntowebR()" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px;">
+        Upload into R
+      </button>
 
-<!-- Remote image -->
-<img src="https://raw.githubusercontent.com/GAMU-MILAN/webR-app/refs/heads/main/spm.png" alt="folder_structure" width="600">
-<p>
-  The ZIP can contain multiple folders; for example, typical folders are <code>Before</code> and <code>After</code>.
-  Once uploaded, the files will be extracted into the webR virtual filesystem and the main folders will be listed below.
-</p>
-<p><b>Select a ZIP file with your data:</b></p>
-<input type="file" id="zipFile" accept=".zip" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-bottom:10px;"/><br>
-<button id="uploadZipBtn" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px;">Upload and extract</button>
-<pre class="simple">
-  <code id="zipStatus">No ZIP data uploaded yet.</code>
-</pre>
+      <pre><code id="UploadIntowebR_output">No files uploaded yet.</code></pre>
 
-<!-- Place lists of files -->
-<div id="main-folders" style="margin-top:0px; padding:1px; border:0px solid #84c4f9; border-radius:2px; background-color:#e3f2fd;">
-  <p style="color:#0c3574; font-weight: bold; font-size: small;">First-level folders:</p>
-  <pre id="main-folders-text">Loading...</pre>
-</div><br>
+      <h3 id="params_def_section">1.3 Configure parameters</h3>
+      <p>Configure signal processing, smoothing, and feature detection parameters below. Default values are optimized for standard SPM force curves.</p>
+      
+      <div class="parameters-section">
+        <ul>
+          <li>
+            <b>Cutting proportion:</b>
+            <input type="number" id="autocut" value="0.5" min="0" max="1" step="0.01"> 
+            <br><em>What proportion of the curve at the start can we ignore for peak detection (default: <code>0.5</code>). Lower values include more of the far approach region.</em>
+          </li>
+          <li>
+            <b>Resampling factor:</b>
+            <input type="number" id="resample_times" value="5" min="1"> 
+            <br><em>Increases the resolution of the data grid (makes it denser) to capture more precise timing of peaks and dips (default: <code>5</code>).</em>
+          </li>
+          <li>
+            <b>Peak Detection Criteria:</b>
+            <br><em>Configures directional point counts needed to identify rupture events (how many points in a row must increase or decrease to label a point as a peak):</em>
+            <ul>
+              <li>Increasing points (<code>nups_peak</code>): <input type="number" id="nups" value="10" min="1"> <br><em>How many consecutive increasing data points are needed to confirm an upward trend is forming a peak (default: <code>10</code>).</em></li>
+              <li>Decreasing points (<code>ndowns_peak</code>): <input type="number" id="ndowns" value="5" min="1"> <br><em>How many consecutive decreasing data points are needed to confirm the peak has ended (default: <code>5</code>).</em></li>
+              <li>Minimal peak height proportion: <input type="number" id="min_peak_height_proportion" value="0.05" min="0.000001" step="0.01"> <br><em>Minimum peak prominence normalized to total signal spread; helps ignore very small peaks (default: <code>0.05</code>).</em></li>
+            </ul>
+          </li>
+          <li>
+            <b>Dip Detection Criteria:</b>
+            <br><em>How many points in a row must increase or decrease to label a point as a dip:</em>
+            <ul>
+              <li>Increasing points (<code>nups_dip</code>): <input type="number" id="nups_dip" value="30" min="1"> <br><em>How many consecutive increasing data points are needed to confirm the dip has ended (default: <code>30</code>).</em></li>
+              <li>Decreasing points (<code>ndowns_dip</code>): <input type="number" id="ndowns_dip" value="10" min="1"> <br><em>How many consecutive decreasing data points are needed to confirm a downward trend is forming a dip (default: <code>10</code>).</em></li>
+            </ul>
+          </li>
+          <li>
+            <b>Smoother span value for deflection:</b>
+            <input type="number" id="lowess_deflection_f" value="0.0001" min="0.000001" step="0.01">
+            <br><em>Fraction of points influencing local regression using lowess. Increase slightly if high-frequency noise creates false-positive rupture peaks (default: <code>0.0001</code>).</em>
+          </li>
+          <li>
+            <b>Interpolation skip distance (<code>delta</code>):</b>
+            <input type="number" id="lowess_deflection_delta" value="5" min="1" step="1">
+            <br><em>Speeds up <code>lowess()</code> execution across large datasets by interpolating between points spaced by <code>delta</code> (default: <code>5</code>).</em>
+          </li>
+          <li>
+            <b>AFMToolkit CP multipliers:</b>
+            <ul>
+              <li>Noise threshold: <input type="number" id="mul1" value="1" min="0.001" step="0.1"> <em>(default: <code>1</code>).</em></li>
+              <li>Significance threshold: <input type="number" id="mul2" value="10" min="0.001" step="0.1"> <em>(default: <code>10</code>).</em></li>
+            </ul>
+          </li>
+          <li>
+            <b>Local peak windowing correction:</b> 
+            <select id="correction">
+              <option value="TRUE">TRUE</option>
+              <option value="FALSE">FALSE</option>
+            </select>
+            <br><em>When <code>TRUE</code>, refines peak detection by searching for the true maximum within a local window in the raw data around the smoothed LOESS peak.</em>
+          </li>
+        </ul>
+      </div>
 
-<!-- ################################################### -->
-<!-- ## Upload files into R and convert them to one data -->
-<!-- ################################################### -->
+      <h3 id="data_summary">1.4 Summarize the data</h3>
+      <p>
+        Review and adjust the parameters above as needed for your dataset. Once configured, click <b>Summarize the data</b> to execute signal smoothing, feature extraction, and baseline processing across all loaded curves.
+      </p>
 
+      <button onclick="summarizeTheData()" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px;">Summarize the data</button>
+      <pre><code id="DataSumm_output">Waiting for initialization ...</code></pre>
+    </div>
 
-<h3 id="loadIntoR" style="color:#0c3574; margin-top:15px;">1.2 Upload files into R</h3>
+    <!-- SECTION 2 -->
+    <div class="section-card">
+      <h2 id="Chapter2">2. Classification</h2>
 
-<!--
-Now, we upload the data into webR. To do this, first select type of files inside uploaded ZIP (only <code>spm</code> and <code>jpk</code> are supported). <br>
--->
-
-<!-- Let user choose the type explicitly -->
- <!--
-<label for="fileType"><em>File type inside zip:</em></label>
-<select id="fileType">
-  <option value="none">select file type</option>
-  <option value="jpk">.jpk</option>
-  <option value="spm">.spm</option>
-</select> 
-
-<pre id="fileType_output" class="simple"></pre>
--->
-
-<!-- Upload the data into R -->
-Now, by clicking on the button below, all the files will be uploaded into R memory. To check that everything is OK, the numbers of curves within each first-level subfolder will be displayed.<br>
-<button onclick="UploadIntowebR()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Upload into R
-</button>
-
-<pre><code id="UploadIntowebR_output">No files uploaded yet.</code></pre>
-
-<!-- ################################################### -->
-<!-- ## Define parameters -->
-<!-- ################################################### -->
-
-<h3 id="params_def_section" style="color:#0c3574; margin-top:15px;">1.3 Define parameters</h3>
-
-Before we start to analyze the uploaded data, we define some useful parameters:
-<div class="parameters-section">
-  <ul>
-    <li>
-      How much of the curve is cut off:
-      <input type="number" id="autocut" value="0.5" min="0" max="1" step="0.01"> <em>(default value 0.5)</em>
-    </li>
-
-    <li>
-      If the data are sparsely sampled, resample the data
-      <input type="number" id="resample_times" value="5" min="1">  <em>(default value 5)</em>
-      times.
-    </li>
-
-    <li>
-      How many points in a row must increase or decrease to label a point as a <b>peak</b>:
+      <p>The application evaluates curves using three independent classification models to predict event profiles (e.g., <i>none</i>, <i>one rupture</i>, <i>double rupture</i>, or <i>bad curve</i>):</p>
       <ul>
-        <li>
-          number of increasing points:
-          <input type="number" id="nups" value="10" min="1"> <em>(default value 10)</em>
-        </li>
-        <li>
-          number of decreasing points:
-          <input type="number" id="ndowns" value="5" min="1"> <em>(default value 5)</em>
-        </li>
-        <li>
-          minimum peak height proportion:
-          <input type="number" id="min_peak_height_proportion" value="0.05" min="0.000001" step="0.01"> <em>(default value 0.05)</em>
-        </li>
+        <li><b>Brute Force:</b> Rule-based thresholding on peak counts and half-variance.</li>
+        <li><b>Classification Tree:</b> Single decision tree trained on shakiness, deflection IQR, and deflection variance features.</li>
+        <li><b>Random Forest:</b> Ensemble model.</li>
       </ul>
-    </li>
+      
+      <h3 id="class_calc">2.1 Classification of the F-D curves</h3>
+      <p>Click below to execute all three model evaluations simultaneously in R memory:</p>
+      <button onclick="ClassifyCurves()" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px;">
+        Classify
+      </button>
+      <pre><code id="ClassifyCurves_output">Waiting for initialization ...</code></pre>
 
-    <li>
-      How many points in a row must increase or decrease to label a point as a <b>dip</b>:
-      <ul>
-        <li>
-          number of increasing points:
-          <input type="number" id="nups_dip" value="30" min="1"> <em>(default value 30)</em>
-        </li>
-        <li>
-          number of decreasing points:
-          <input type="number" id="ndowns_dip" value="10" min="1"> <em>(default value 10)</em>
-        </li>
+      <h3 id="class_plot">2.2 Prediction distribution</h3>
+      <p>
+        Inspect how the three classification models (Brute Force, Decision Tree, and Random Forest) categorized your dataset. The plots below compare the distribution of predicted curve types across each subfolder, helping you evaluate sample quality and identify differences between experimental conditions (e.g., <code>Control</code> vs. <code>Treated</code>).
+      </p>
+
+      <button id="AgreementPlotBtn" onclick="AgreementPlotFunction()" disabled style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px; margin-bottom: 12px;">
+        Plot prediction distribution
+      </button><br>
+
+      <canvas id="AgreementPlot" width="2100" height="1200" style="border: 1px solid var(--border-color);"></canvas>
+
+      <div style="margin-top: 12px;">
+        <button id="downloadAgreementPlot" disabled style="background-color: var(--danger-red); color: white; padding: 8px 14px; border-radius: 6px;">
+          Download Plot (PNG)
+        </button> 
+        <button id="download_data_AgreementPlot" disabled style="background-color: var(--success-green); color: white; padding: 8px 14px; border-radius: 6px; margin-left: 6px;">
+          Download Image Data (CSV)
+        </button>
+      </div>
+
+      <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+      <b>Exported Dataset Structure:</b> The downloaded CSV file contains the following columns:
+      <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+        <li><b><code>folder</code>:</b> First-level subfolder name (e.g., <i>Before</i>, <i>After</i>).</li>
+        <li><b><code>method</code>:</b> Classification algorithm used (<code>brute</code>, <code>forest</code>, or <code>tree</code>).</li>
+        <li><b><code>prediction</code>:</b> Predicted event profile (<code>bad</code>, <code>none</code>, <code>one</code>, or <code>double</code>).</li>
+        <li><b><code>count</code>:</b> Total number of curves falling into this group.</li>
+        <li><b><code>pct</code>:</b> Percentage of curves in this category relative to the total curves in the subfolder.</li>
       </ul>
-    </li>
+    </div>
 
-    <li>
-      Smoother span value:
-      <input type="number" id="lowess_deflection_f" value="0.0001" min="0.000001" step="0.01">
-      <em>(default value 0.0001; proportion of nearby points affecting the smooth; larger values increase smoothness)</em>
-    </li>
+      <h3 id="class_export">2.3 Export the classification results</h3>
+      <p>Export the full dataset containing individual curve features, estimated number of peaks, and predictions from all three classification models. Click the button below to save the detailed metrics as a CSV file for downstream statistical analysis.</p>
 
-     <li>
-      Distance-based interpolation threshold:
-      <input type="number" id="lowess_deflection_delta" value="5" min="1" step="1">
-      <em>(default value 5; acts as a <em>skip distance</em> - increasing it reduces the number of local regressions performed via <code>lowess()</code> function, replacing them with faster linear interpolation)</em>
-    </li>
+      <button id="download-data" style="background-color: var(--success-green); color: white; padding: 8px 14px; border-radius: 6px;">
+        Download Classification Results (CSV)
+      </button>
 
-    <li>
-      When searching for the contact point using the <b>AFMToolkit</b> package:
-      <ul>
-        <li>
-          first multiplier for the noise threshold:
-          <input type="number" id="mul1" value="1" min="0.001" step="0.1"> <em>(default value 1)</em>
-        </li>
-        <li>
-          second multiplier for the significance threshold:
-          <input type="number" id="mul2" value="10" min="0.001" step="0.1"> <em>(default value 10)</em>
-        </li>
-      </ul>
-    </li>
-    <li>
-      Attempt localizing peak point window before peak search? <select id="correction">
-        <option value="TRUE">TRUE</option>
-        <option value="FALSE">FALSE</option>
-      </select> 
-    </li>
-  </ul>
-</div>
+      <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+        <b>Exported Dataset Structure:</b> The downloaded CSV file contains individual curve metrics and prediction results:
+        <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+          <li><b><code>curve_index</code>:</b> Unique numerical index assigned to the curve within the dataset batch.</li>
+          <li><b><code>deflection_variance_half</code>:</b> Deflection variance in later half of the curve.</li>
+          <li><b><code>deflection_iqr</code>:</b> Interquartile range of deflection variable.</li>
+          <li><b><code>shakiness</code>:</b> A custom metric quantifying curve fluctuation or jitter. Formally defined as the mean absolute difference (MAD) between data points separated by a lag of 5 positions.</li>
+          <li><b><code>number_of_peaks</code>:</b> Estimated number of peaks.</li>
+          <li><b><code>full_path</code>:</b> Complete relative file path of the <code>.spm</code> source file within the uploaded archive.</li>
+          <li><b><code>folder</code>:</b> First-level subfolder name representing the experimental condition (e.g., <i>After</i>, <i>Before</i>).</li>
+          <li><b><code>tree_prediction</code>:</b> Classification result predicted by the single Decision Tree model.</li>
+          <li><b><code>forrest_prediction</code>:</b> Classification result predicted by the Random Forest ensemble model.</li>
+          <li><b><code>brute_prediction</code>:</b> Classification result predicted by the rule-based brute force method.</li>
+        </ul>
+      </div>
+    </div>
 
+    
 
-   <button onclick="summarizeTheData()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">Summarize the data</button>
-   <pre><code id="DataSumm_output">Waiting for initialization ...</code></pre>
+    <!-- SECTION 3 -->
+    <div class="section-card">
+      <h2 id="Chapter3">3. Metric Calculation and Visual Inspection</h2>
 
-<!-- ################################################### -->
-<!-- ################################################### -->
-<!-- ############# Data classification ################# -->
-<!-- ################################################### -->
-<!-- ################################################### -->
+      <p>
+        In this chapter, classification labels from your chosen model are applied to extract quantitative mechanical properties from each Force–Distance curve. Once a target model is selected, the application computes key parameters, such as rupture force (<i>F</i><sub>R</sub>) and apparent bilayer thickness (<i>z</i><sub>A-C</sub>), and enables interactive visual inspection to verify or manually adjust contact points.
+      </p>
+      <h3 id="final_model_section">3.1 Select final model & CP method</h3>
 
-<hr style="border: 1px solid #0c3574; width: 100%;">
+      <p>
+        Based on classifier performance in <a href="#Chapter2" style="color: var(--primary-color); text-decoration: underline;">Chapter 2</a>, choose the algorithm that best captures your dataset's features. 
+      </p>
+      
+      <div class="parameters-section" style="margin-bottom: 12px;">
+        <label for="finalmodel"><b>Model for metrics calculation:</b></label><br>
+        <select id="finalmodel" style="margin-top: 4px;">
+          <option value="none">no model selected yet</option>
+          <option value="brute force">brute force</option>
+          <option value="classification tree">tree</option>
+          <option value="random forest">forest</option>
+        </select> 
+      </div>
+      <pre id="finalmodel_output" class="simple"></pre>
 
-<h2 id="Chapter2" style="color:#0c3574; margin-top:15px;">2 Data classification</h2>
+      <p>You can choose the method for contact point (CP) detection from the available algorithms below.</p>
 
-<hr style="border: 0.1px solid #0c3574; width: 100%;">
+      <div style="background-color: #eff6ff; border-left: 4px solid var(--primary-color); padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+        <b>Available Contact Point (CP) detection methods:</b>
+        <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+          <li><b>afmToolkit:</b> The method is based on the <code>afmToolkit</code> package in R.</li>
+          <li><b>CUT:</b> to be updated.</li>
+          <li><b>INTERSECT:</b> to be updated.</li>
+        </ul>
+      </div>
 
-Now, we classify the curves.
+      <div class="parameters-section" style="margin-bottom: 12px;">
+        <label for="contactPointFunction"><b>Contact Point detection method:</b></label><br>
+        <select id="contactPointFunction" style="margin-top: 4px;">
+          <option value="none">select method for contact point</option>
+          <option value="AFMToolkit">AFMToolkit</option>
+          <option value="CUT">CUT</option>
+          <option value="INTERSECT">INTERSECT</option>
+        </select> 
+      </div>
+      <pre id="contactPointFunction_output" class="simple"></pre>
 
-<!-- ################################################### -->
-<!-- ## Classification of the curves -->
-<!-- ################################################### -->
+      <h3 id="compute_metrics_section">3.2 Calculate curve metrics</h3>
 
-<h3 id="class_calc" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.1 Classification of the curves</h3>
+      <p>
+        Compute properties across all classified curves using your selected Contact Point (CP) method. The summary table and interactive plot below allow you to inspect parameters such as rupture force (<i>F</i><sub>R</sub>) and apparent bilayer thickness (<i>z</i><sub>A-C</sub>) for individual curves.
+      </p>
 
-If you want to classify your curves, press the <code>Classify</code> button below. <br>
+      <button onclick="ComputeMetrics()" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px;">
+        Compute metrics
+      </button>
+      <pre><code id="ComputeMetrics_output">Waiting for initialization ...</code></pre>
 
-<button onclick="ClassifyCurves()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Classify
-</button>
+      <button id="download-data2" style="background-color: var(--success-green); color: white; padding: 8px 14px; border-radius: 6px;">
+        Download Metrics Data (CSV)
+      </button>
 
-<pre><code id="ClassifyCurves_output">Waiting for initialization ...</code></pre>
+      <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+        <b>Exported Dataset Structure:</b> The downloaded CSV file contains individual curve metrics and prediction results:
+        <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+          <li><b><code>curve_index</code>:</b> Unique numerical index assigned to the curve within the dataset batch.</li>
+          <li><b><code>deflection_variance_half</code>:</b> Deflection variance in later half of the curve.</li>
+          <li><b><code>deflection_iqr</code>:</b> Interquartile range of deflection variable.</li>
+          <li><b><code>shakiness</code>:</b> A custom metric quantifying curve fluctuation or jitter. Formally defined as the mean absolute difference (MAD) between data points separated by a lag of 5 positions.</li>
+          <li><b><code>number_of_peaks</code>:</b> Estimated number of peaks.</li>
+          <li><b><code>full_path</code>:</b> Complete relative file path of the <code>.spm</code> source file within the uploaded archive.</li>
+          <li><b><code>folder</code>:</b> First-level subfolder name representing the experimental condition (e.g., <i>After</i>, <i>Before</i>).</li>
+          <li><b><code>prediction</code>:</b> Classification result predicted by the selected classification model.</li>
+          <li><b><code>z1</code>:</b> Apparent bilayer thickness (<i>z</i><sub>A-C</sub>) for the first rupture event (<code>NA</code> if prediction is <i>none</i> or <i>bad</i>).</li>
+          <li><b><code>f1</code>:</b> Rupture force (<i>F</i><sub>R</sub>) for the first rupture event (<code>NA</code> if prediction is <i>none</i> or <i>bad</i>).</li>
+          <li><b><code>z2</code>:</b> Apparent bilayer thickness (<i>z</i><sub>A-C</sub>) for the second rupture event (<code>NA</code> unless prediction is <i>double</i>).</li>
+          <li><b><code>f2</code>:</b> Rupture force (<i>F</i><sub>R</sub>) for the second rupture event (<code>NA</code> unless prediction is <i>double</i>).</li>
+          <li><b><code>CP_index</code>:</b> Row index of the detected Contact Point (CP) according to the selected search algorithm.</li>
+        </ul>
+      </div>
 
-<!-- ################################################### -->
-<!-- ## Plotting results -->
-<!-- ################################################### -->
+      <h3 id="plot_curve_section">3.3 Plot individual curve & fine-tune CP</h3>
+      <p>
+        Select individual curve to inspect automated peak locations, rupture dips, and estimated contact points across different detection algorithms.
+        <em>From the dropdown menu, select a curve to visualize. You must first select a curve (other than the first one), then click the plot button.</em>
+      </p>
+      
+      <div class="parameters-section">
+        <select id="rowSelect" disabled style="min-width: 250px;">
+          <option value="">-- Load data first --</option>
+        </select>
+      </div>
+      <pre id="rowSelect_output" class="simple"></pre>
 
-<h3 id="class_plot" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.2 Plot the results</h3>
-We can visualize the classification results by a plot of prediction distribution per method.<br>
+      <button id="plotRowBtn" disabled onclick="plotIndividualCurve()" style="background-color: var(--primary-color); color: white; padding: 8px 16px; border-radius: 6px; margin-bottom: 12px;">
+        Plot selected curve
+      </button><br>
 
-<!--
-<button id="plot1-button" disabled="true" style="background-color:#cf4a4a; color:black; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Prediction distribution per method
-</button><br>-->
+      <canvas id="IndividualCurve_Plot" width="2100" height="900" style="border: 1px solid var(--border-color);"></canvas>
 
-<!-- <div id="plot1-container" width="1000" height="400"></div> -->
+      <pre><code id="IndividualCurve_output">Waiting for initialization ...</code></pre>
 
-<!--
-<canvas id="plot1-container" width="700" height="300" style="border:1px solid #84c4f9; border-radius:5px;"></canvas>-->
+      <div style="background-color: #f8fafc; border-left: 4px solid var(--primary-color); padding: 10px 14px; margin-bottom: 12px; margin-top: 12px; font-size: 15px;">
+        <b>Manual Correction Instructions:</b> If visual inspection reveals an incorrect Contact Point (CP):
+        <ol style="margin: 4px 0 0 0; padding-left: 18px;">
+          <li>Note the correct <i>x</i>-axis sample index from the rendered plot.</li>
+          <li>Enter the index into the <b>New contact point index</b> field below.</li>
+          <li>Click <span style="background-color: var(--primary-color); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Overwrite</span> for a single curve, or <span style="background-color: var(--danger-red); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Overwrite ALL</span> to apply the new index to all curves at once. Curve metrics (<i>z</i> and <i>f</i>) will recompute automatically.</li>
+        </ol>
+      </div>
 
-<button id="AgreementPlotBtn" onclick="AgreementPlotFunction()" disabled="true" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Plot the prediction distribution per method
-</button>
-<br>
-<canvas id="AgreementPlot" width="2100" height="1200" style="border:1px solid #84c4f9; border-radius:5px; width: 700px; height: 400px;"></canvas>
+      <div class="parameters-section">
+        New contact point index: <input type="number" id="custom_contact_point" value="0" min="0" step="1" disabled>
+      </div>
+      
+      <div style="margin-top: 8px;">
+        Overwrite current curve: 
+        <button id="OverWriteBtn" disabled onclick="OverWriteFunc()" style="background-color: var(--primary-color); color: white; padding: 6px 12px; border-radius: 6px;">
+          Overwrite
+        </button>
+      </div>
 
-<br><br>
-<button id="downloadAgreementPlot" disabled="true" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the plot above (PNG)
-</button> or 
-<button id="download_data_AgreementPlot" disabled="true" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the image data (CSV)
-</button>.
+      <div style="margin-top: 8px;">
+        Overwrite <span class="danger-text">ALL</span> curves:
+        <button id="OverWriteAllBtn" disabled style="background-color: var(--danger-red); color: white; padding: 6px 12px; border-radius: 6px;">
+          Overwrite ALL
+        </button>
+      </div>
 
-<!-- ################################################### -->
-<!-- ## Export results -->
-<!-- ################################################### -->
+      <div style="margin-top: 12px; padding-top: 16px;">
+        <button id="download_IndividualCurve_Plot" style="background-color: var(--danger-red); color: white; padding: 8px 14px; border-radius: 6px;">
+          Download Plot (PNG)
+        </button>
+        <button id="download_data_IndividualCurve_Plot" disabled style="background-color: var(--success-green); color: white; padding: 8px 14px; border-radius: 6px; margin-left: 6px;">
+          Download Plot Data (CSV)
+        </button>
+      </div>
 
-<h3 id="class_export" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">2.3 Export the results</h3>
-We can also export the classification results into a csv file.<br>
+      <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+        <b>Exported Dataset Structure:</b> The downloaded CSV file contains data of individual curve:
+        <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+          <li><b><code>height</code>:</b> Raw Z-piezo position or scanner height sensor displacement.</li>
+          <li><b><code>deflection.nm</code>:</b> Cantilever deflection converted into spatial units (nanometers) using optical lever sensitivity.</li>
+          <li><b><code>separation</code>:</b> Calculated tip-sample separation distance, defined as <code>height</code> plus cantilever deflection.</li>
+          <li><b><code>deflection.nN</code>:</b> Cantilever deflection converted into force units (nanonewtons).</li>
+          <li><b><code>segment</code>:</b> Auxiliary variable indicating the curve trace phase (e.g., <i>approach</i> vs. <i>retract</i>).</li>
+          <li><b><code>full_path</code>:</b> Complete relative file path of the <code>.spm</code> source file within the uploaded archive.</li>
+          <li><b><code>curve_index</code>:</b> Unique numerical index assigned to the curve within the current dataset batch.</li>
+          <li><b><code>index</code>:</b> Row index of the individual data point within the specific curve array.</li>
+          <li><b><code>folder</code>:</b> First-level subfolder name representing the experimental condition (e.g., <i>Before</i>, <i>After</i>).</li>
+          <li><b><code>lowess_deflection</code>:</b> Smoothed deflection signal obtained via lowess filtering.</li>
+          <li><b><code>important_x_points</code>:</b> Categorical flag identifying key structural landmarks along the curve (e.g., <i>contact</i> for Contact Point, <i>peak</i>, or <i>dip</i>).</li>
+        </ul>
+      </div>
 
-<button id="download-data" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the classification results (CSV)
-</button>
+      <h3 id="data_export">3.4 Data export</h3>
 
-<!-- ################################################### -->
-<!-- ################################################### -->
-<!-- ############# Inspect the results ################# -->
-<!-- ################################################### -->
-<!-- ################################################### -->
+      <p>
+        Export the compiled parameters and calculated curve metrics across all processed files. Click the button below to generate and save a CSV file containing per-curve rupture forces (<i>F</i><sub>R</sub>), apparent bilayer thicknesses (<i>z</i><sub>A-C</sub>), other parameters, and final Contact Point indices for downstream statistical analysis and visualization.
+      </p>
 
-<hr style="border: 1px solid #0c3574; width: 100%;">
+      <div style="margin-top: 4px; padding-top: 1px;">
+        Export corrected results: 
+        <button id="download-data3" style="background-color: var(--success-green); color: white; padding: 8px 14px; border-radius: 6px; margin-left: 6px;">
+          Download CSV
+        </button>
+      </div>
 
-<h2 id="Chapter3" style="color:#0c3574; margin-top:15px;">3 Curve metrics</h2>
+      <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 16px; margin: 16px 0; font-size: 13px; border-radius: 0 6px 6px 0;">
+        <b>Exported Dataset Structure:</b> The downloaded CSV file contains corrected individual curve metrics and prediction results:
+        <ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+          <li><b><code>curve_index</code>:</b> Unique numerical index assigned to the curve within the dataset batch.</li>
+          <li><b><code>deflection_variance_half</code>:</b> Deflection variance in later half of the curve.</li>
+          <li><b><code>deflection_iqr</code>:</b> Interquartile range of deflection variable.</li>
+          <li><b><code>shakiness</code>:</b> A custom metric quantifying curve fluctuation or jitter. Formally defined as the mean absolute difference (MAD) between data points separated by a lag of 5 positions.</li>
+          <li><b><code>number_of_peaks</code>:</b> Estimated number of peaks.</li>
+          <li><b><code>full_path</code>:</b> Complete relative file path of the <code>.spm</code> source file within the uploaded archive.</li>
+          <li><b><code>folder</code>:</b> First-level subfolder name representing the experimental condition (e.g., <i>After</i>, <i>Before</i>).</li>
+          <li><b><code>prediction</code>:</b> Classification result predicted by the selected classification model.</li>
+          <li><b><code>z1</code>:</b> Apparent bilayer thickness (<i>z</i><sub>A-C</sub>) for the first rupture event (<code>NA</code> if prediction is <i>none</i> or <i>bad</i>).</li>
+          <li><b><code>f1</code>:</b> Rupture force (<i>F</i><sub>R</sub>) for the first rupture event (<code>NA</code> if prediction is <i>none</i> or <i>bad</i>).</li>
+          <li><b><code>z2</code>:</b> Apparent bilayer thickness (<i>z</i><sub>A-C</sub>) for the second rupture event (<code>NA</code> unless prediction is <i>double</i>).</li>
+          <li><b><code>f2</code>:</b> Rupture force (<i>F</i><sub>R</sub>) for the second rupture event (<code>NA</code> unless prediction is <i>double</i>).</li>
+          <li><b><code>CP_index</code>:</b> Row index of the detected Contact Point (CP) according to the selected search algorithm.</li>
+        </ul>
+      </div>
 
-<hr style="border: 0.1px solid #0c3574; width: 100%;">
-
-In the last chapter, we use the classification results from the selected model (see below) and compute curve metrics. Next, we plot the curve according to the users choice.
-
-<!-- ################################################### -->
-<!-- ## Select the final model      -->
-<!-- ################################################### -->
-
-<h3 id="final_model_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.1 Select the final model</h3>
-
-According to the previous results, you can choose the model to be used for metrics calculation. <br>
-
-<!-- Let user choose the type explicitly -->
-
-<div class="parameters-section">
-  <label for="finalmodel"><em>Select the model that you want to use for metrics calculation:</em></label>
-<select id="finalmodel">
-  <option value="none">no model selected yet</option>
-  <option value="brute force">brute force</option>
-  <option value="classification tree">tree</option>
-  <option value="random forest">forest</option>
-</select> 
-</div>
-
-<pre id="finalmodel_output" class="simple"></pre>
-
-Moreover, you can choose which method should be used for contact point searching. <br>
-
-<!-- Let user choose the type explicitly -->
-<div class="parameters-section">
-  <label for="contactPointFunction"><em>Select a method:</em></label>
-<select id="contactPointFunction">
-  <option value="none">select method for contact point</option>
-  <option value="AFMToolkit">AFMToolkit</option>
-  <option value="CUT">CUT</option>
-  <option value="INTERSECT">INTERSECT</option>
-</select> 
-</div>
-
-<pre id="contactPointFunction_output" class="simple"></pre>
-
-<!-- ################################################### -->
-<!-- ## Compute metrics   -->
-<!-- ################################################### -->
-
-<h3 id="compute_metrics_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.2 Compute curve metrics</h3>
-
-Based on the selected model from <a href="#final_model_section">the previous section</a>, we compute some curve metrics (press the <code>Compute metrics</code> button below). <br>
-
-<button onclick="ComputeMetrics()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Compute metrics
-</button>
-
-<pre><code id="ComputeMetrics_output">Waiting for initialization ...</code></pre>
-
-We can also export the classification results along with the computed metrics.<br>
-
-<button id="download-data2" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the classification results with computed metrics (CSV)
-</button>
-
-<!-- ################################################### -->
-<!-- ## Plot individual curve   -->
-<!-- ################################################### -->
-
-<h3 id="plot_curve_section" style="color:#0c3574; margin-top:15px; margin-bottom: 6px;">3.3 Plot individual curve</h3>
-
-Finally, we plot an individual curve with annotated peaks, contact points and dip points. <br><br>
-
-<b>Select a curve to be plotted</b><br>
-From the dropdown menu, select a curve to visualize. <em>You must first select a curve (other than the first one), then click the plot button.</em>
-<div class="parameters-section">
-<select id="rowSelect" disabled>
-  <option value="">-- Load data first --</option>
-</select>
-</div>
-
-<pre id="rowSelect_output" class="simple"></pre>
-
-<button id="plotRowBtn" disabled onclick="plotIndividualCurve()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Plot the selected curve
-</button>
-
-<br>
-<canvas id="IndividualCurve_Plot" width="2100" height="900" style="border:1px solid #84c4f9; border-radius:5px; width: 700px; height: 300px;"></canvas>
-
-<br>
-<button id="download_IndividualCurve_Plot" style="background-color:#cf4a4a; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the plot above (PNG)
-</button> or 
-<button id="download_data_IndividualCurve_Plot" disabled="true" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  Download the image data (CSV)
-</button>.<br>
-
-<pre><code id="IndividualCurve_output">Waiting for initialization ...</code></pre>
-
-<div class="parameters-section">
-New contact point index: <input type="number" id="custom_contact_point" value="0" min="0" step="1" disabled>.
-</div>
-In order to overwrite <span style="color: #cf4a4a;">the current contact point index</span> and corresponding metrics, press
- <button id="OverWriteBtn" disabled onclick="OverWriteFunc()" style="background-color:#1565c0; color:white; padding: 7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  overwrite
-</button>.<br>
-In order to overwrite 
-<span class="danger-text">all contact point indices</span> 
-and corresponding metrics, press
-
-<button id="OverWriteAllBtn" disabled
-        style="background-color:#1565c0; color:white; padding:7px; border:none; border-radius:5px; margin-top:4px;">
-  overwrite ALL
-</button>.<br>
-
-<hr style="border: 0.2px solid #bbdefb; width: 100%;">
-
-Finally, you can download the classification results with corrected metrics: <button id="download-data3" style="background-color:#43a047; color:black; padding:7px 7px; border:none; border-radius:5px; margin-top: 4px;">
-  download (CSV)
-</button>.
-
+    </div>
+  </div>
 </body>
-
 </html>
-
-
-
